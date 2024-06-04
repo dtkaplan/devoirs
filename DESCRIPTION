@@ -1,0 +1,13 @@
+Package: devoirs
+Type: Package
+Title: Collects homework submissions from Quarto/HTML documents
+Version: 0.1.0
+Author: Daniel Kaplan
+Maintainer: Daniel Kaplan <dtkaplan@github.com>
+Description: Supports creating multiple-choice and essay questions within Quarto/HTML. Student entries for these can be collected into a JSON object suitable for handing in via a spreadsheet such as Google Forms.
+Depends: knitr, 
+    htmltools
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.2.1
