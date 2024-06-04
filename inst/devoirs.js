@@ -1,4 +1,4 @@
-console.log("In fooooo devoirs.js")
+console.log("In devoirs.js")
 
 function devoirsCollectEssays() {
   var essay_answers = [];

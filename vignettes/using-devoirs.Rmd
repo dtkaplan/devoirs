@@ -1,0 +1,81 @@
+---
+title: "Writing and collecting homework with the `{devoirs}` package "
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Writing and collecting homework with the `{devoirs}` package }
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r include=FALSE}
+library(devoirs)
+```
+
+Instructors routinely write homework assignments and collect student answers. For those instructors distributing assignments as HTML files using the Quarto system to produce them, the lightweight `{devoirs}` package^[*devoirs* is French for "homework."] lets you instrument the HTML file so that student answers can easily be submitted and provides a responsive "multiple-choice" format.
+
+Unfortunately, R vignettes do not yet support Quarto, so the vignette contents are contained in this [blog post].
+
+The overall structure of a Quarto `.qmd` file that uses `{devoirs}` has three elements:
+
+1. A chunk near the start of the document to load the `{devoirs}` library:
+
+```{r}
+#| echo: fenced
+library(devoirs)
+```
+
+2. A chunk (typically at near the start of the document) that provides the facility to collect the student answers in a format that can be pasted into whatever web-based collection facility you use, for example, Google Forms. The render output from `devoirs_start()` the 
+     
+```{r eval=FALSE}
+#| echo: fenced
+devoirs_start(collectURL = "<an actual URL>") 
+```
+     
+```{r echo=FALSE, results="asis"}
+devoirs_start(collectURL =
+"https://docs.google.com/forms/d/e/1FAIpQLSevJgyHTRHm6_HVQqrYMd8wjMYifPknPLXtpVTunlWlO7RbMw/viewform?usp=pp_url")
+```
+     
+In action, this specific vignette file links to a Google Form, but the instructor needs to
+provide her own such facility via the `collectURL` argument.
+
+
+
+3. At the end of the document (after any `{devoirs}` questions) a closing statement that provides the necessary javascript functionality to power the answer collection:
+
+```r devoirs_end()```
+
+Between the `devoirs_start()` and `devoirs_end()` markers, you can add as many questions as you want. Each question must be given a unique ID.
+
+## Multiple-choice question: Example
+
+What color is the blue moon? 
+
+     ``{mcq}
+     #| label: blue-moon
+     #| inline: true
+     #| show_hints: true
+     1. blue [hint: It's not blue!]
+     2. red $\sqrt{3}$
+     3. moon colored [correct]
+     ```
+
+The individual items are numbered (or provided with any other kind of label ending with a period). This label will not be printed out.
+
+Options that apply to all items use the inline-yaml style
+
+## Essay question: Example
+
+Write something of interest!
+
+     `` r devoirs_text("of-interest")``
+
+
+## 
+
+
+
+`r devoirs_end()`
+
+

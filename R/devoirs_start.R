@@ -14,3 +14,9 @@ devoirs_start <- function(documentID = knitr::current_input(),
     <button onclick="devoirsSubmit()">Collect your answers</button> then paste them <a href="{collectURL}" target="popup">here</a>.
     <div id="devoirs_summary">No answers yet collected</div>}')
 }
+
+#' @export
+devoirs_end <- function() {
+  script <- readLines(system.file("devoirs.js", package = "devoirs"))
+  paste("<script type='text/javascript'>\n", paste(script, collapse="\n"), "\n</script>\n")
+}

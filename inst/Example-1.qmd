@@ -14,12 +14,12 @@ library(devoirs)
 ```
 
 
-
-
 ```{r echo=FALSE, results="asis"}
 devoirs_start(collectURL =
 "https://docs.google.com/forms/d/e/1FAIpQLSevJgyHTRHm6_HVQqrYMd8wjMYifPknPLXtpVTunlWlO7RbMw/viewform?usp=pp_url")
 ```
+
+
 
 
 ::: {.callout-note #qst-blue-moon}
@@ -31,7 +31,7 @@ What color is the blue moon? <!-- Use {mcqdebug} to capture options to file. -->
 #| label: first-one
 #| inline: true
 #| show_hints: true
-1. blue
+1. blue [hint: It's not blue!]
 2. red $\sqrt{3}$
 3. moon colored [correct]
 ```
@@ -47,6 +47,8 @@ What is the moon made of?
 
 :::
 
+`r getwd()`
+
 ::: {.callout-note #qst-my-essay}
 ##
 
@@ -55,4 +57,11 @@ Write something of interest!
 `r devoirs_text("of-interest")`
 :::
 
-<script type="text/javascript" src="devoirs.js"></script>
+<!-- PROVIDING THE devoirs.js file -->
+
+<!-- YOU MUST INCLUDE THIS to make the items responsive -->
+
+<!-- while debugging devoirs.js, include this way ... -->
+<!--script type="text/javascript" src="devoirs.js"></script-->
+<!-- otherwise, include text from package -->
+`r devoirs_end()`
