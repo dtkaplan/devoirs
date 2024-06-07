@@ -29,11 +29,13 @@ library(devoirs)
      
 ```{r eval=FALSE}
 #| echo: fenced
-devoirs_start(collectURL = "<an actual URL>") 
+devoirs_start(documentID = "June 3 blog post", 
+              collectURL = "<an actual URL>") 
 ```
      
 ```{r echo=FALSE, results="asis"}
-devoirs_start(collectURL =
+devoirs_start(documentID = "June 3 blog post", 
+              collectURL =
 "https://docs.google.com/forms/d/e/1FAIpQLSevJgyHTRHm6_HVQqrYMd8wjMYifPknPLXtpVTunlWlO7RbMw/viewform?usp=pp_url")
 ```
      

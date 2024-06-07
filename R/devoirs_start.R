@@ -18,5 +18,8 @@ devoirs_start <- function(documentID = knitr::current_input(),
 #' @export
 devoirs_end <- function() {
   script <- readLines(system.file("devoirs.js", package = "devoirs"))
-  paste("<script type='text/javascript'>\n", paste(script, collapse="\n"), "\n</script>\n")
+  paste("<script type='text/javascript'>\n",
+        paste(script, collapse="\n"),
+        "\n</script>\n") |>
+    HTML()
 }
