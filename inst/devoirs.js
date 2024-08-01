@@ -23,7 +23,7 @@ function devoirsCollectMC() {
         if (ele[i].checked) {
           //console.log("Entering conditional.");
           let checked_one = ele[i];
-          mc_answers[count++] = {itemid: checked_one.id, truth: checked_one.getAttribute("truth"), start: checked_one.value};
+          mc_answers[count++] = {itemid: checked_one.id, w: checked_one.getAttribute("w"), contents: checked_one.text};
         }
     }
     return mc_answers;
@@ -39,7 +39,7 @@ function devoirsCollectWebR() {
   }
   var chunks = qwebrCellDetails;
   for (i = 0; i < chunks.length; i++) {
-    chunk_contents[i] = {chunk_id: i, code: chunks[i].code};
+    chunk_contents[i] = {itemid: chunks[i].options["label"], contents: chunks[i].code};
   }
 
   return chunk_contents;
@@ -53,7 +53,7 @@ function devoirsSubmit() {
   navigator.clipboard.writeText(JSON.stringify(items));
 
   // summarize what's being collected
-  var my_summary = "A summary of your collected answers: Fixed choice: " + items.MC.length + " Essays: " + items.Essays.length + " WebR chunks: " + items.WebR.length
+  var my_summary = "Answers copied to clipboard. Summary counts: Fixed choice: " + items.MC.length + " Essays: " + items.Essays.length + " WebR chunks: " + items.WebR.length
 
   document.getElementById("devoirs_summary").innerHTML = my_summary;
 }

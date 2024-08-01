@@ -9,9 +9,10 @@ parse_item_options <- function(s) {
   # break up by name: items
   m <- gregexpr("[a-zA-Z\\-\\_]*:", s)
   names <- regmatches(s, m) |> unlist()
+  # w is the codename for whether the answer is correct
   if (length(names) == 0) {
     if (s[1] != "")
-      return(list(truth = s[1], hint = random_positive()))
+      return(list(w = answer_code(s[1]), hint = random_positive()))
   }
   # extract the options following each name
   killnames <- paste0('(', paste(names, collapse="|"), ')')
@@ -21,8 +22,10 @@ parse_item_options <- function(s) {
   s <- s[!s == ""] # get rid of empty ones
   s <-  stringr::str_trim(s) |> as.list()
   if (length(names) < length(s) && s[[1]] != "") {
-    # there's an unnamed first option. name it "truth"
-    names <- c("truth", names)
+    # there's an unnamed first option. Use it to set the answer_code.
+    s[[1]] <- answer_code(s[[1]])
+    # the only allowname it "w"
+    names <- c("w", names)
   }
   names(s) <- names
 
@@ -44,7 +47,7 @@ random_positive <- function() {
 set_item_options <- function(s) {
   # These are the allowed options for a question item.
   item_defaults <- list(
-    truth = "false",
+    w = sample(devoirs_false_code(), 1), # unless listed as correct, set this answer to be false.
     hint = random_negative()
   )
   opts <- parse_item_options(s)
@@ -55,4 +58,15 @@ set_item_options <- function(s) {
   item_defaults[names(opts)] <- opts
 
   item_defaults
+}
+
+# the codes that indicate if an MC answer item is correct.
+devoirs_false_code <- function() c(87, 32, 23, 7, 19, 3)
+devoirs_true_code <- function() c(41, 35, 29, 14, 8, 5, 16, 18, 20)
+answer_code <- function(word) {
+  switch(word,
+         correct = sample(devoirs_true_code(), 1),
+         sample(devoirs_false_code(),1) # otherwise, it's wrong
+         )
+
 }

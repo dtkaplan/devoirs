@@ -18,12 +18,11 @@ mcq_engine <- function(options) {
           collapse="\n\n") |>
     yaml::yaml.load()
 
-  qID <- yamlopts$label
   if ("label" %in% names(yamlopts))
     qID <- yamlopts$label
   else {
     warning("Must provide unique 'label: <name>' within each mcq chunk.")
-    yamlopts$label <- paste("no-label", date())
+    yamlopts$label <- qID <- paste("no-label", date())
   }
   # keep labels unique
   if (store_devoirs_labels$duplicated(qID)) warning(qID, " is a duplicated label.")
@@ -63,9 +62,13 @@ mc_choices <- function(choices) {
 add_choice <- function(choice) {
   # parse for options
   tmp <- gsub(" +\\[.*\\] ?$", "", choice) # kill bracketed options
+  if (!grepl("^([0-9a-zA-Z]{1,4})\\.? ?", tmp))
+    stop("MCQ item must be started with an ID, like 1. or 2a.")
+  divided <- gsub("^([0-9a-zA-Z]{1,4})\\.? ?", "\\1:::::", tmp)
+  parts <- unlist(strsplit(divided, ":::::"))
   res <- list(
-    text = gsub("^.*\\. ?", "", tmp),
-    orig_id = gsub("^(.*)\\..*", "\\1", tmp)  #item ID, number at the start.
+    text = parts[2],
+    orig_id = parts[1]  #item ID, number at the start.
   )
   props <- if (!grepl("\\[.*\\]", choice)) {
       set_item_options("") # no properties given
@@ -101,9 +104,9 @@ emit_mcq_html <- function(options, choices) {
     tags$input(type = "radio",
                class = "devoirs-mcq",
                name = qID,
-               id = paste0(qID, ".default"),
+               id = paste0(qID, ".null"),
                style = "display: none;",
-               truth = "skipped",
+               w = "skipped", # w is the correct/wrong/skipped field
                checked = ""
                ),
     # Hint area
@@ -124,20 +127,35 @@ emit_mcq_html <- function(options, choices) {
   Res |> as.character() |> HTML()
 }
 
+condense_text <- function(str, n=10, interpose=" ... ") {
+  # Pull out at most 2*n characters from str,
+  # the first n and the last n.
+  # If nchar(str) < 2*n, pull out the whole string.
+  if (nchar(str) < 2*n) return(str)
+  else {
+    last_index <- nchar(str)
+    front <- substr(str,1, n)
+    back <- substr(str, last_index - n + 1, last_index)
+    return(paste0(front, interpose, back))
+  }
+}
+
 emit_one_item_html <- function(options, choice, inline) {
   qID <- options$label # from the {mcq} chunk options
   Res <- tagList(
     tags$input(type = "radio",
              class = "devoirs-mcq",
-             value = substr(choice$text, 1, 20),
+             value = condense_text(choice$text, n=10, interpose=" ... "),
              id = paste0(qID, "-", choice$orig_id),
-             truth = choice$truth,
+             w = choice$w, # is the item to be marked correct
              name = qID,
              hint = choice$hint,
              show_hints = ifelse ("show_hints" %in% names(options),
                                   options$show_hints, "false")
              ),
-    choice$text, ifelse(inline, "     ", "")
+    HTML(choice$text),
+    # add some following space if items are inline.
+    ifelse(inline, "     ", "")
   )
 
   Res

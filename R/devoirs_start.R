@@ -20,6 +20,6 @@ devoirs_end <- function() {
   script <- readLines(system.file("devoirs.js", package = "devoirs"))
   paste("<script type='text/javascript'>\n",
         paste(script, collapse="\n"),
-        "\n</script>\n") |>
+        "\n</script>\n\n") |>
     HTML()
 }
