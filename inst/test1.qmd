@@ -1,0 +1,117 @@
+```{r include=FALSE}
+library(mosaicCalc)
+library(devoirs)
+```
+
+::: {#exr-j89tJn}
+Which of the following is a correct dimensional formulation of power?
+
+```{mcq}
+#| label: j89tJn
+#| show_hints: true
+1. [[Force]][[Velocity]] [ correct hint: right-o  ]
+2. [[Energy]][[Velocity]] 
+3. [[Force]] / [[Velocity]] 
+4. [[Energy]] / [[Velocity]] 
+```
+:::
+
+
+
+
+```{r clc2-4, echo=FALSE, results="markup"}
+devoirs::askMC(
+  "Input name in $f(u) \\equiv a u + b + u^2$?",
+  "t", "+u+", "v", "w", "x", "y", "z", random_answer_order=FALSE
+)
+```
+
+
+```{r drill-Quiz-2-13, echo=FALSE, results='markup'}
+askMC(
+  prompt = r"(What is the period of $g(t)$? $$g(t) \equiv \frac{5}{\sin(2 \pi t)}$$  )",
+  r"(+1+)" = r"( )",
+  r"(5)" = r"(5 isn't inside the $\sin()$ parentheses.)",
+  r"($2 \pi/5$)" = r"(5 isn't inside the $\sin()$ parentheses.)",
+  r"($5/2\pi$)" = r"(5 isn't inside the $\sin()$ parentheses.)",
+  r"($g(t)$ isn't periodic.)" = r"(Since the $\sin()$ is periodic, $1/\sin()$ is also periodic.)",
+  random_answer_order=FALSE
+)
+```
+
+
+```{r drill-Quiz-1-20, eval=FALSE, results='markup'}
+askMC(
+  prompt = "What's suspect about this R command?\n\n `g <- makeFun(exp(y) ~ x)`",
+r"(+The formula is `exp(y)` but the argument name is `x`+)" = r"()",
+  r"(There is a tilde expression as the argument to `makeFun()`.)" = r"(That is  exactly what is supposed to happen, namely to give a tilde expression as the input to `makeFun()` !)",
+  r"(The function name should be `G`, not `g`.)" = r"(The function name is your choice! Either would be right.)",
+  r"(Nothing)" = r"(I guess that "suspect" is in the eye of the beholder. But I think there is a better choice here.)",
+  random_answer_order=FALSE,
+  item_label = "Drill "
+) 
+```
+
+```{r drill-Quiz-1-21, echo=FALSE, results='markup'}
+askMC(
+  prompt = r"(What's wrong with the R expression `sin*(x + 3)`? )",
+r"(+There is no function named `sin*()`+)" = r"(And besides, `*` cannot be part of any valid name in R.)",
+  r"(It should be `sin+(x+3)`)" = r"(There is no function named `sin+()`)",
+  r"(It should be `sin^(x+3)`)" = r"(There is no function named `sin^()`)",
+  r"(Nothing)" = r"(hint: What's the name of the function being used? Is that really a function?)",
+  random_answer_order=FALSE,
+  item_label = "Drill "
+) 
+```
+
+```{r daily-digital-10-QA8, echo=FALSE, results="markup"}
+askMC(
+  prompt = "What must the dimension of $c$ for the arithmetic operation $1 + c \\cdot 2^{k\\,t}$  to make sense?",
+    "+dim(1)+"  = "Right.  You're going to  have to add $c \\cdot 2^{kt}$ to 1. Since $[k\\,t] = [1]$, $c$ also needs to be dimensionless.",
+    "T$^{-1}$" = "",
+    "T" = "Then $[k\\,t] = $T^2$, which  would  violate the exponential rule.",
+    "Depends on the dimension of  $2^{kt}$"  = "We already determined that $[kt]  = [1]$, so $[2^{kt}] = [1]$.",
+  inline = FALSE,
+  random_answer_order =  FALSE
+) 
+```
+
+::: {#prp-foobar}
+ Given the definition pressure $(H) \equiv \exp(- H/10)$, which of these does the symbol $H$ suggest using our CalcZ notation conventions? 
+
+```{mcq}
+#| label: foobar
+#| show_hints: true
+1. a constant 
+2. the input to the function [ correct hint: right-o Even though $H$ is not a name we will use frequently for the input to a function, whenever you see $f(H) \equiv ...$, you know that $H$ is being explicitly declared to be a function. ]
+3. the output from the function 
+4. the function name 
+5. it is nonsense 
+```
+:::
+
+Given the definition pressure $(H) \equiv \exp(- H/10)$, which of these does the symbol $H$ suggest using our CalcZ notation conventions?
+
+```{r drill-Quiz-1-4, echo=FALSE, results='asis'}
+askMC(
+  prompt = r"(Given the definition pressure $(H) \equiv \exp(- H/10)$, which of these does the symbol $H$ suggest using our CalcZ notation conventions? )",
+r"(a constant)" = r"( )",
+  r"(+the input to the function+)" = r"(Even though $H$ is not a name we will use frequently for the input to a function, whenever you see $f(H) \equiv ...$, you know that $H$ is being explicitly declared to be a function.)",
+  r"(the output from the function)" = r"( )",
+  r"(the function name)" = r"( )",
+  r"(it is nonsense)" = r"( )",
+  show_feedback = TRUE, inline=FALSE, 
+  random_answer_order=TRUE,
+  item_label = "Drill "
+)
+```
+
+Here are three numbers.
+```{mcq}
+#| label: an-ordinary
+#| inline: true
+#| show_hints: true
+1. 1
+2. 2
+3. 3 [correct]
+```

@@ -24,7 +24,7 @@ parse_item_options <- function(s) {
   if (length(names) < length(s) && s[[1]] != "") {
     # there's an unnamed first option. Use it to set the answer_code.
     s[[1]] <- answer_code(s[[1]])
-    # the only allowname it "w"
+    # the only allowed name is "w" which stands for "wrong"
     names <- c("w", names)
   }
   names(s) <- names

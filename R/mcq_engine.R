@@ -61,7 +61,8 @@ mc_choices <- function(choices) {
 
 add_choice <- function(choice) {
   # parse for options
-  tmp <- gsub(" +\\[.*\\] ?$", "", choice) # kill bracketed options
+  tmp <- gsub("^(....*) \\[{1}[^\\[]...*\\]{1} ?$", "\\1", choice) # kill bracketed options
+  opts <- gsub("^....* (\\[....*\\]) ?$", "\\1", choice)
   if (!grepl("^([0-9a-zA-Z]{1,4})\\.? ?", tmp))
     stop("MCQ item must be started with an ID, like 1. or 2a.")
   divided <- gsub("^([0-9a-zA-Z]{1,4})\\.? ?", "\\1:::::", tmp)
@@ -70,12 +71,20 @@ add_choice <- function(choice) {
     text = parts[2],
     orig_id = parts[1]  #item ID, number at the start.
   )
+  # Escape out double brackets in res$text, [[ or ]]
+  tmp <- gsub("\\[{2}", "@@!", res$text)
+  res$text <- gsub("\\]{2}", "#@@@", tmp)
+
   props <- if (!grepl("\\[.*\\]", choice)) {
       set_item_options("") # no properties given
     } else {
       # Pull out the []-bracketed text and parse it.
       gsub(".*\\[(.*)\\] ?$", "\\1", choice) |> set_item_options()
     }
+
+  # unescape the double brackets
+  tmp <- gsub("#@@@", "\\]", res$text)
+  res$text <- gsub("@@!", "\\[", tmp)
 
   c(res, props) # text and options in one list
 }
@@ -158,5 +167,6 @@ emit_one_item_html <- function(options, choice, inline) {
     ifelse(inline, "     ", "")
   )
 
-  Res
+  if (inline) Res
+  else p(Res)
 }
