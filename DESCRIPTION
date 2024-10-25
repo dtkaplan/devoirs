@@ -15,4 +15,9 @@ VignetteBuilder: knitr
 Imports: 
     htmltools,
     knitr
+Suggests:
+    googlesheets4,
+    yaml,
+    dplyr,
+    
 
