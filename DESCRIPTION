@@ -19,5 +19,6 @@ Suggests:
     googlesheets4,
     yaml,
     dplyr,
-    
+    jsonlite,
+    stringr,
 
