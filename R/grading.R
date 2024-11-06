@@ -100,7 +100,6 @@ document_names <- function(home, since = "2000-1-1 00:00:01 UTC") {
 }
 
 #' Summarize all of a student's submissions from a single file.
-#'
 summarize_student_doc <- function(
     Submissions = get_historic_data(),
     docid = "03-exercises.rmarkdown",
@@ -123,7 +122,8 @@ summarize_student_doc <- function(
   R <- c(sapply(Subs, function(x) x$R)) |>
     parse_webr_event() |> # deparse each R item
     unique() |> # avoid duplicates
-    arrange(label, time)
+    arrange(label, time) |>
+    mutate(time = )
   # Note: the duplicates may arise because webr keeps a cumulative history
   # of R commands in any one session. If the student submits twice from the same
   # session.
@@ -134,12 +134,34 @@ summarize_student_doc <- function(
   # There should in the end be just one row for each itemid
 }
 
-# NOTES ON PROCESS
-# 1. Get all submissions from a given student from a given assignment: summarize_student_doc()
-#    This uses historic data.
-#    Result: three data frames: MC, essays, webr
+#' Score multiple choice problems for one student for one assignment
+score_MC <- function(MC) {
+  correct_set <- devoirs:::devoirs_true_code()
+  MC |> filter(w != "skipped") |>
+    # is the answer right?
+    mutate(w = w %in% correct_set) |>
+    mutate(nright = sum(w), nwrong = n() - nright, last = w, .by = itemid) |>
+    # get last submission along with tallies for the others
+    arrange(desc(time), .by = itemid) |>
+    filter(row_number() == 1, .by=itemid)
+}
 
-
+#' Format the R history for display
+#' Print this with knitr::kable()
+#' Maybe reformat <time> to be "days ago"
+format_R <- function(Revents, time_unit = NULL) {
+  # see if the code parses
+  Revents$runs <- (sapply(Revents$code, function(x) !inherits(try(eval(parse(text=x)), silent=TRUE), "try_error"), simplify = TRUE))
+  Revents$time <- lubridate::mdy_hms(Revents$time)
+  if (time_unit %in% c("days", "hrs")) {
+    # Convert to days ago.
+    Revents$time = (Revents$time - Sys.time())  |> as.numeric(time_unit)
+  }
+  Revents |>
+    # mutate(code = gsub("\n", "  ;  ", code)) |>
+    arrange(label, desc(time)) |>
+    select(time, label, runs, code)
+}
 
 ## Helpers
 convert_time_helper <- function(datetime) {
@@ -165,7 +187,7 @@ parse_webr_event <- function(events=goo$R) {
   times <- gsub(", code", "", gsub("time: ", "", times))
   code <- stringr::str_extract(events, "\n([^:]*$)")
   code <- gsub("^\n", "", code)
-  tibble(label = chunks, text = code, time = times)
+  tibble(label = chunks, code = code, time = times)
 
 }
 
@@ -185,3 +207,7 @@ collect_component <- function(submissions, component = "MC", timestamps) {
   dplyr::bind_rows(component)
 }
 
+# Return true or false: is the answer correct
+is_right_MC <- function(w) {
+
+}
