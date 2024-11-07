@@ -49,7 +49,10 @@ get_historic_data <- function(home = ".", since = "2000-1-1 00:00:01 UTC") {
   if (file.access("Permanent_store.RDS") == 0) {
     tmp <- readRDS("Permanent_store.RDS")
     return(tmp |>  dplyr::filter(Timestamp > since))
-  } else return(NULL)
+  } else {
+    warning("No <Permanent_store.RDS> file in working directory.")
+    return(NULL)
+  }
 }
 
 #'
@@ -99,18 +102,44 @@ document_names <- function(home, since = "2000-1-1 00:00:01 UTC") {
     .by = docid)
 }
 
+#' @export
+save_student_score <- function(email, docid, score, grader = "unknown") {
+  score_file_name <- "Student-scores.csv"
+  entry <- glue::glue("{Sys.time()}, {email}, {docid}, {score}, {grader}")
+  filenames <- dir()
+  if (!score_file_name %in% filenames) {
+    writeLines("score_time, email, docid, score, grader", con = score_file_name)
+  }
+
+  cat(entry, file=score_file_name, append=TRUE, sep = "\n")
+}
+
+#' @export
+student_names <- function(home, since = "2000-1-1 00:00:01 UTC") {
+  since <- convert_time_helper(since)
+  Tmp <- get_historic_data(home, since)
+
+  Tmp |> select(email) |>
+    unique()
+}
+
 #' Summarize all of a student's submissions from a single file.
+#' @export
 summarize_student_doc <- function(
     Submissions = get_historic_data(),
     docid = "03-exercises.rmarkdown",
     student = "dtkaplan@gmail.com",
     since = "2000-1-1 00:00:01 UTC",
-    until = Sys.Date() + (24*60*60 - 1)) {
+    until = Sys.time() + (24*60*60 - 1)) {
+  since <- convert_time_helper(since)
+  until <- convert_time_helper(until)
+  doc_name <- docid # avoid a problem with filter
   Submissions <- Submissions |>
-    filter(student == email,
-           docid == docid,
+    dplyr::filter(student == email,
+           docid == doc_name,
            since <= Timestamp,
            until >= Timestamp)
+  browser()
   convert_to_df <- function(x) jsonlite::parse_json(x, simplifyVector = TRUE)
   Subs <- lapply(Submissions$contents, FUN = convert_to_df)
 
@@ -119,11 +148,11 @@ summarize_student_doc <- function(
   Essays <- collect_component(Subs, "Essays", Submissions$Timestamp)
   # Handle differently, since each submission$R is a character vector
   # with the timestamp already embedded
-  R <- c(sapply(Subs, function(x) x$R)) |>
-    parse_webr_event() |> # deparse each R item
+  R <- c(sapply(Subs, function(x) x$R))
+  R <- lapply(R, FUN = parse_webr_event) |>
+    dplyr::bind_rows() |>
     unique() |> # avoid duplicates
-    arrange(label, time) |>
-    mutate(time = )
+    dplyr::arrange(label, time)
   # Note: the duplicates may arise because webr keeps a cumulative history
   # of R commands in any one session. If the student submits twice from the same
   # session.
@@ -132,6 +161,8 @@ summarize_student_doc <- function(
 
   # NEED TO PROCESS MC and Essays to keep just the last non-skipped item submitted.
   # There should in the end be just one row for each itemid
+
+
 }
 
 #' Score multiple choice problems for one student for one assignment
@@ -139,7 +170,7 @@ score_MC <- function(MC) {
   correct_set <- devoirs:::devoirs_true_code()
   MC |> filter(w != "skipped") |>
     # is the answer right?
-    mutate(w = w %in% correct_set) |>
+    mutate(w = w %in% correct_set) |> # Primative decoding: was it the correct choice.
     mutate(nright = sum(w), nwrong = n() - nright, last = w, .by = itemid) |>
     # get last submission along with tallies for the others
     arrange(desc(time), .by = itemid) |>
@@ -165,7 +196,7 @@ format_R <- function(Revents, time_unit = NULL) {
 
 ## Helpers
 convert_time_helper <- function(datetime) {
-  if (inherits(datetime, "POSIXlt")) return(datetime)
+  if (inherits(datetime, "POSIXlt") || inherits(datetime, "POSIXct")) return(datetime)
   if (inherits(datetime, "character"))
     return(as.POSIXlt(datetime, tz = "UTC"))
   stop("Unknown date-time format used.")
@@ -180,14 +211,16 @@ get_doc_id_helper <- function(submission) {
 }
 
 # Turn the stuff in the webr history into a simple data frame
-parse_webr_event <- function(events=goo$R) {
+parse_webr_event <- function(events) {
+  browser()
   chunks <- stringr::str_extract(events, "(chunk: [^,]*)")
   chunks <- gsub("chunk: ", "", chunks)
   times <- stringr::str_extract(events, "(time: .*), code")
   times <- gsub(", code", "", gsub("time: ", "", times))
-  code <- stringr::str_extract(events, "\n([^:]*$)")
-  code <- gsub("^\n", "", code)
-  tibble(label = chunks, code = code, time = times)
+  code <- gsub("# \\[.*\\]\n", "", events)
+  # code <- stringr::str_extract(events, "\n([^:]*$)")
+  # code <- gsub("^\n", "", code)
+  tibble::tibble(label = chunks, code = code, time = times)
 
 }
 
@@ -207,7 +240,3 @@ collect_component <- function(submissions, component = "MC", timestamps) {
   dplyr::bind_rows(component)
 }
 
-# Return true or false: is the answer correct
-is_right_MC <- function(w) {
-
-}
