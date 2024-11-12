@@ -10,8 +10,10 @@
 #' @export
 get_course_params <- function(home = ".") {
   # Prepare to return to the previous working directory
+  if (home !=  ".") {
   old_dir <- setwd(home)
   on.exit(setwd(old_dir))
+  }
 
   fnames <- dir()
   if ("course-parameters.yml" %in% fnames ) {
@@ -38,6 +40,30 @@ get_new_submissions <- function(home = ".") {
   names(tmp)[c(2,3)] <- c("email", "contents")
 
   tmp
+}
+
+#' Who is registered for the class
+#' @param section FOR FUTURE USE
+#' @export
+get_class_roster <- function(home = ".", section = NULL) {
+  params <- get_course_params(home)
+  params["class_list"]
+}
+
+#' Are the submissions names a subset of the class roster. If not,
+#' that suggests that either the submissions or the class roster are wrong.
+#' @export
+check_submission_names <- function(home = ".", since = "2000-1-1 00:00:01 UTC") {
+  Subs <- get_historic_data(since = since) |>
+    dplyr::select(email) |>
+    unique()
+
+  Students <- get_class_roster(home)
+
+  list(
+    not_in_class = setdiff(Subs$email, Students$class_list),
+    not_in_submissions = setdiff(Students$class_list, Subs$email)
+  )
 }
 
 #' Get the historic data
@@ -115,49 +141,67 @@ save_student_score <- function(email, docid, score, grader = "unknown") {
 }
 
 #' @export
-student_names <- function(home, since = "2000-1-1 00:00:01 UTC") {
+submission_student_names <- function(home, since = "2000-1-1 00:00:01 UTC") {
   since <- convert_time_helper(since)
-  Tmp <- get_historic_data(home, since)
 
-  Tmp |> select(email) |>
+  get_historic_data(home, since) |>
+    dplyr::select(email) |>
     unique()
 }
 
-#' Summarize all of a student's submissions from a single file.
+#' Summarize submissions from multiple students from a single document
 #' @export
-summarize_student_doc <- function(
-    Submissions = get_historic_data(),
+summarize_document <- function(
+    students = get_class_roster()$class_list,
     docid = "03-exercises.rmarkdown",
-    student = "dtkaplan@gmail.com",
+    Submissions = get_historic_data(),
     since = "2000-1-1 00:00:01 UTC",
     until = Sys.time() + (24*60*60 - 1)) {
   since <- convert_time_helper(since)
   until <- convert_time_helper(until)
-  doc_name <- docid # avoid a problem with filter
+  doc_name <- docid # avoid a problem with filter()
+  allMC <- allEssays <- allR <- NULL
+  # Just the ones in the specified document,
+  # within the since-to-last time frame
   Submissions <- Submissions |>
-    dplyr::filter(student == email,
-           docid == doc_name,
-           since <= Timestamp,
-           until >= Timestamp)
-  browser()
-  convert_to_df <- function(x) jsonlite::parse_json(x, simplifyVector = TRUE)
-  Subs <- lapply(Submissions$contents, FUN = convert_to_df)
+    dplyr::filter(docid == doc_name,
+                  since <= Timestamp,
+                  until >= Timestamp)
+  for (student in students) {
+    For_student <- Submissions |>
+      dplyr::filter(email == student)
+    if (nrow(For_student) == 0) next # Don't process for this student
+    convert_to_df <- function(x) jsonlite::parse_json(x, simplifyVector = TRUE)
+    Subs <- lapply(For_student$contents, FUN = convert_to_df)
 
-  # Grab the MC component
-  MC <- collect_component(Subs, "MC", Submissions$Timestamp)
-  Essays <- collect_component(Subs, "Essays", Submissions$Timestamp)
-  # Handle differently, since each submission$R is a character vector
-  # with the timestamp already embedded
-  R <- c(sapply(Subs, function(x) x$R))
-  R <- lapply(R, FUN = parse_webr_event) |>
-    dplyr::bind_rows() |>
-    unique() |> # avoid duplicates
-    dplyr::arrange(label, time)
-  # Note: the duplicates may arise because webr keeps a cumulative history
-  # of R commands in any one session. If the student submits twice from the same
-  # session.
+    # Grab the MC component
+    MC <- collect_component(Subs, "MC", For_student$Timestamp)
 
-  list(MC = MC, Essays = Essays, R = R)
+    # get rid of the unlabelled items
+    # MC <- MC |> dplyr::filter(!grepl("null$", itemid))
+
+    MC$email <- student # add the student's ID
+    Essays <- collect_component(Subs, "Essays", For_student$Timestamp)
+    Essays$email <- student
+    # Handle differently, since each submission$R is a character vector
+    # with the timestamp already embedded
+    R <- c(sapply(Subs, function(x) x$R))
+    # Note: the duplicates may arise because webr keeps a cumulative history
+    # of R commands in any one session. If the student submits twice from the same
+    # session.
+    R <- lapply(R, FUN = parse_webr_event) |>
+      dplyr::bind_rows() |>
+      unique() |> # avoid duplicates
+      dplyr::arrange(label, time)
+    R$email <- student
+
+    allMC <- dplyr::bind_rows(allMC, MC)
+    allEssays <- dplyr::bind_rows(allEssays, Essays)
+    allR <- dplyr::bind_rows(allR, R)
+  }
+
+  if (nrow(allEssays) > 0) allEssays <- allEssays |> dplyr::filter(contents != "")
+  list(MC = allMC, Essays = allEssays, R = allR)
 
   # NEED TO PROCESS MC and Essays to keep just the last non-skipped item submitted.
   # There should in the end be just one row for each itemid
@@ -166,16 +210,17 @@ summarize_student_doc <- function(
 }
 
 #' Score multiple choice problems for one student for one assignment
-score_MC <- function(MC) {
-  correct_set <- devoirs:::devoirs_true_code()
-  MC |> filter(w != "skipped") |>
-    # is the answer right?
-    mutate(w = w %in% correct_set) |> # Primative decoding: was it the correct choice.
-    mutate(nright = sum(w), nwrong = n() - nright, last = w, .by = itemid) |>
-    # get last submission along with tallies for the others
-    arrange(desc(time), .by = itemid) |>
-    filter(row_number() == 1, .by=itemid)
-}
+#' THIS HAS BEEN REPLACED by version in score_MC.R
+# score_MC <- function(MC) {
+#   correct_set <- devoirs:::devoirs_true_code()
+#   MC |> filter(w != "skipped") |>
+#     # is the answer right?
+#     mutate(w = w %in% correct_set) |> # Primative decoding: was it the correct choice.
+#     mutate(nright = sum(w), nwrong = n() - nright, last = w, .by = itemid) |>
+#     # get last submission along with tallies for the others
+#     arrange(desc(time), .by = itemid) |>
+#     dplyr::filter(row_number() == 1, .by=itemid)
+# }
 
 #' Format the R history for display
 #' Print this with knitr::kable()
@@ -212,7 +257,6 @@ get_doc_id_helper <- function(submission) {
 
 # Turn the stuff in the webr history into a simple data frame
 parse_webr_event <- function(events) {
-  browser()
   chunks <- stringr::str_extract(events, "(chunk: [^,]*)")
   chunks <- gsub("chunk: ", "", chunks)
   times <- stringr::str_extract(events, "(time: .*), code")
@@ -229,14 +273,20 @@ collect_component <- function(submissions, component = "MC", timestamps) {
   getter <- function(item) {
     item[[component]]
   }
-  component <- lapply(submissions, FUN = getter)
+  this_component <- lapply(submissions, FUN = getter)
 
   if (!missing(timestamps)) {
     # Check this just as a reminder
-    if (length(timestamps) != length(component)) stop("Must be a timestamp for every submission")
-    for (k in 1:length(component)) component[[k]]$time <- timestamps[k]
+    if (length(timestamps) != length(this_component)) stop("Must be a timestamp for every submission")
+    for (k in 1:length(this_component)) {
+      if ("contents" %in% names(this_component)) {
+        this_component[[k]]$time <- timestamps[k]
+      } else {
+        this_component[[k]] <- NULL
+      }
+    }
   }
 
-  dplyr::bind_rows(component)
+  dplyr::bind_rows(this_component)
 }
 
