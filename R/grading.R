@@ -21,7 +21,8 @@ get_course_params <- function(home = ".") {
     params <- yaml::read_yaml("course-parameters.yml")
 
   } else {
-    stop(glue::glue("<{{dir}}> is not a valid devoirs grading directory. See documentation."))
+    warning(glue::glue("<{{dir}}> is not a valid devoirs grading directory. See documentation."))
+    return(NULL)
   }
 
   params
@@ -72,11 +73,12 @@ check_submission_names <- function(home = ".", since = "2000-1-1 00:00:01 UTC") 
 #' @export
 get_historic_data <- function(home = ".", since = "2000-1-1 00:00:01 UTC") {
   since <- convert_time_helper(since)
-  if (file.access("Permanent_store.RDS") == 0) {
-    tmp <- readRDS("Permanent_store.RDS")
+  store_file_name <- paste0(home, "/Permanent_store.RDS")
+  if (file.access(store_file_name) == 0) {
+    tmp <- readRDS(store_file_name)
     return(tmp |>  dplyr::filter(Timestamp > since))
   } else {
-    warning("No <Permanent_store.RDS> file in working directory.")
+    warning(paste("No <Permanent_store.RDS> file in", home))
     return(NULL)
   }
 }
@@ -109,7 +111,7 @@ update_submissions <- function(home = ".") {
 #' Get the names of the document ids present in the submissions
 #' @rdname grading
 #' @export
-document_names <- function(home, since = "2000-1-1 00:00:01 UTC") {
+document_names <- function(home = ".", since = "2000-1-1 00:00:01 UTC") {
   since <- convert_time_helper(since)
   Tmp <- get_historic_data(home, since)
   # # Pull out the submissions
@@ -152,9 +154,10 @@ submission_student_names <- function(home, since = "2000-1-1 00:00:01 UTC") {
 #' Summarize submissions from multiple students from a single document
 #' @export
 summarize_document <- function(
-    students = get_class_roster()$class_list,
+    home = ".",
+    students = get_class_roster(home)$class_list,
     docid = "03-exercises.rmarkdown",
-    Submissions = get_historic_data(),
+    Submissions = get_historic_data(home),
     since = "2000-1-1 00:00:01 UTC",
     until = Sys.time() + (24*60*60 - 1)) {
   since <- convert_time_helper(since)
@@ -195,13 +198,15 @@ summarize_document <- function(
       dplyr::arrange(label, time)
     R$email <- student
 
+    #
     allMC <- dplyr::bind_rows(allMC, MC)
     allEssays <- dplyr::bind_rows(allEssays, Essays)
     allR <- dplyr::bind_rows(allR, R)
   }
 
-  if (nrow(allEssays) > 0) allEssays <- allEssays |> dplyr::filter(contents != "")
-  list(MC = allMC, Essays = allEssays, R = allR)
+  if (nrow(allEssays) > 0) allEssays <- allEssays |>
+    dplyr::filter(contents != "")
+  list(MC = allMC, Essays = allEssays, R = allR, docid = docid)
 
   # NEED TO PROCESS MC and Essays to keep just the last non-skipped item submitted.
   # There should in the end be just one row for each itemid

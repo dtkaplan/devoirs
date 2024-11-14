@@ -1,6 +1,5 @@
 #' Construct MC grading matrices for a document
 #'
-#'
 #' @param submissions The MC component of the summarize_document() output
 #' @param count Minimum count (as integer) for item to be scored
 #' @param frac Minimum fraction (as decimal) for item to be scored
@@ -14,8 +13,9 @@ score_MC <- function(submissions, min_count = 0, min_frac = 0) {
     dplyr::filter(!w == "skipped") |>
     dplyr::mutate(w = as.integer(w))
   #check that it has the right columns
-  if (!all(c("itemid", "w", "time", "email") %in% names(submissions)))
-    stop("Ill-formed MC submissions. Columns not matched")
+  # browser()
+  # if (!all(c("itemid", "w", "time", "email") %in% names(submissions)))
+  #   stop("Ill-formed MC submissions. Columns not matched")
 
   if (!is.logical(submissions$w)) {
     # hasn't yet been decoded, so do so

@@ -16,7 +16,7 @@ get_historic_data(home = ".", since = "2000-1-1 00:00:01 UTC")
 
 update_submissions(home = ".")
 
-document_names(home, since = "2000-1-1 00:00:01 UTC")
+document_names(home = ".", since = "2000-1-1 00:00:01 UTC")
 }
 \arguments{
 \item{home}{The directory to use. Default: the current working directory.}
