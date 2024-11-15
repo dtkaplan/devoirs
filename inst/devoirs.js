@@ -53,7 +53,7 @@ function devoirsSubmit() {
   // check if there is any sign of a webr entry
   // If not, don't try to collect webr entries
   if (typeof qwebrRCommandHistory === 'undefined') {
-    items = {docid: devoirsGetDocID(), MC: devoirsCollectMC(), Essays: devoirsCollectEssays(), WebR: [], R: []}
+    items = {docid: devoirsGetDocID(), MC: devoirsCollectMC(), Essays: devoirsCollectEssays(), WebR: {}, R: {}}
   } else {
     var Rhistory = qwebrRCommandHistory.map((x) => x.replace(/Ran code in (.*) at (.*[AP]M).{5}(.*)/, "[chunk: $1, time: $2, code: $3]"))
 

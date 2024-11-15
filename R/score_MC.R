@@ -13,7 +13,6 @@ score_MC <- function(submissions, min_count = 0, min_frac = 0) {
     dplyr::filter(!w == "skipped") |>
     dplyr::mutate(w = as.integer(w))
   #check that it has the right columns
-  # browser()
   # if (!all(c("itemid", "w", "time", "email") %in% names(submissions)))
   #   stop("Ill-formed MC submissions. Columns not matched")
 

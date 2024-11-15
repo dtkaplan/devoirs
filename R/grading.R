@@ -183,6 +183,7 @@ summarize_document <- function(
     # get rid of the unlabelled items
     # MC <- MC |> dplyr::filter(!grepl("null$", itemid))
 
+
     MC$email <- student # add the student's ID
     Essays <- collect_component(Subs, "Essays", For_student$Timestamp)
     Essays$email <- student
@@ -287,7 +288,10 @@ collect_component <- function(submissions, component = "MC", timestamps) {
       if ("contents" %in% names(this_component)) {
         this_component[[k]]$time <- timestamps[k]
       } else {
-        this_component[[k]] <- NULL
+
+        # I don't understand why this was here.
+
+        # this_component[[k]] <- NULL
       }
     }
   }
