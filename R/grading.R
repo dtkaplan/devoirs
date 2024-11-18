@@ -113,7 +113,9 @@ update_submissions <- function(home = ".") {
 #' @export
 document_names <- function(home = ".", since = "2000-1-1 00:00:01 UTC") {
   since <- convert_time_helper(since)
-  Tmp <- get_historic_data(home, since)
+  Tmp <- get_historic_data(home, since) |>
+    # Only keep those that pass the test for validity
+    dplyr::filter(submission_valid_contents(contents))
   # # Pull out the submissions
   # for_short <- Tmp[[3]] |> substr(3, 100)  # Has the document ID.
   # shorter <- gsub("\"", "", for_short)
@@ -123,23 +125,21 @@ document_names <- function(home = ".", since = "2000-1-1 00:00:01 UTC") {
   # )
 
   # Construct a summary
-  Tmp |> dplyr::summarize(
+  Tmp |>
+    dplyr::summarize(
     count = dplyr::n(),
     earliest = min(Timestamp),
     latest = max(Timestamp),
-    .by = docid)
+    .by = docid) |>
+    dplyr::mutate(docid = gsub("\\.rmarkdown$", "", docid)) |>
+    dplyr::arrange(desc(docid))
 }
 
-#' @export
-save_student_score <- function(email, docid, score, grader = "unknown") {
-  score_file_name <- "Student-scores.csv"
-  entry <- glue::glue("{Sys.time()}, {email}, {docid}, {score}, {grader}")
-  filenames <- dir()
-  if (!score_file_name %in% filenames) {
-    writeLines("score_time, email, docid, score, grader", con = score_file_name)
-  }
-
-  cat(entry, file=score_file_name, append=TRUE, sep = "\n")
+# This should be made more comprehensive
+submission_valid_contents <- function(contents) {
+  # does it begin with docid?
+  grepl("\\{\"docid\":", contents)
+  # maybe parse contents
 }
 
 #' @export
@@ -163,11 +163,11 @@ summarize_document <- function(
   since <- convert_time_helper(since)
   until <- convert_time_helper(until)
   doc_name <- docid # avoid a problem with filter()
-  allMC <- allEssays <- allR <- NULL
+  allMC <- allEssays <- allR <- tibble::tibble()
   # Just the ones in the specified document,
   # within the since-to-last time frame
   Submissions <- Submissions |>
-    dplyr::filter(docid == doc_name,
+    dplyr::filter(grepl(doc_name, docid),
                   since <= Timestamp,
                   until >= Timestamp)
   for (student in students) {
@@ -205,8 +205,11 @@ summarize_document <- function(
     allR <- dplyr::bind_rows(allR, R)
   }
 
-  if (nrow(allEssays) > 0) allEssays <- allEssays |>
-    dplyr::filter(contents != "")
+  if (nrow(allEssays) > 0) {
+    # remove empty essays
+    allEssays <- allEssays |>
+      dplyr::filter(contents != "")
+  }
   list(MC = allMC, Essays = allEssays, R = allR, docid = docid)
 
   # NEED TO PROCESS MC and Essays to keep just the last non-skipped item submitted.
@@ -241,7 +244,7 @@ format_R <- function(Revents, time_unit = NULL) {
   }
   Revents |>
     # mutate(code = gsub("\n", "  ;  ", code)) |>
-    arrange(label, desc(time)) |>
+    dplyr::arrange(label, desc(time)) |>
     select(time, label, runs, code)
 }
 

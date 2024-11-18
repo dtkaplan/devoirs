@@ -121,7 +121,8 @@ emit_mcq_html <- function(options, choices) {
     # Hint area
     div(tags$small(paste("question id:", qID),
         style = "color: grey;",
-        id = paste0(qID, "-hintarea"))
+        id = paste0(qID, "-hintarea")),
+        class = "hintarea"
         )
   )
 

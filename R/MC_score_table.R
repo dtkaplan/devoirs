@@ -42,7 +42,8 @@ handsontableMC <- function(Submissions, min_count = 0, max_frac = 0, home = ".")
     dplyr::mutate(`0` = TRUE) |>
     dplyr::mutate(`1` = FALSE, `2` = FALSE, `3` = FALSE) |>
     dplyr::select(n_correct, weighted_correct, raw_count, `0`, `1`, `2`, `3`, email, docid, itemid  )
-  rhandsontable(Scores) |>
+  suppressWarnings(
+    rhandsontable(Scores) |>
     hot_cols(columnSorting = TRUE) |>
     hot_context_menu(
       customOpts = list(
@@ -50,11 +51,13 @@ handsontableMC <- function(Submissions, min_count = 0, max_frac = 0, home = ".")
                    callback = htmlwidgets::JS(
                      csv_function_string
                      ))))
+  )
 }
 
 #' @export
 handsontableEssays <- function(Submissions, min_count = 0, max_frac = 0, home = ".") {
   Essays <- Submissions$Essays
+  if (nrow(Essays) == 0) return(NULL)
   docid <- gsub("\\.rmarkdown$", "", Submissions$docid )
   csv_name_stem <- glue::glue("{home}/Score_files/{docid}-essays-{gsub(' ', '-', date())}")
 
@@ -76,7 +79,8 @@ handsontableEssays <- function(Submissions, min_count = 0, max_frac = 0, home = 
     dplyr::mutate(`0` = TRUE) |>
     dplyr::mutate(`1` = FALSE, `2` = FALSE, `3` = FALSE) |>
     dplyr::select(itemid, contents, `0`, `1`, `2`, `3`, email)
-  rhandsontable(Essays, width = "100%") |>
+  suppressWarnings(
+    rhandsontable(Essays, width = "100%") |>
     hot_cols(columnSorting = TRUE) |>
     hot_context_menu(
       customOpts = list(
@@ -84,6 +88,7 @@ handsontableEssays <- function(Submissions, min_count = 0, max_frac = 0, home = 
                    callback = htmlwidgets::JS(
                      csv_function_string
                    ))))
+  )
 }
 
 #' @export
@@ -110,7 +115,8 @@ handsontableR <- function(Submissions, min_count = 0, max_frac = 0, home = ".") 
     dplyr::mutate(`0` = TRUE) |>
     dplyr::mutate(`1` = FALSE, `2` = FALSE, `3` = FALSE) |>
     dplyr::select(itemid = label, code, `0`, `1`, `2`, `3`, time, email )
-  rhandsontable(Chunks, width = "100%") |>
+  suppressWarnings(
+    rhandsontable(Chunks, width = "100%") |>
     hot_cols(columnSorting = TRUE) |>
     hot_context_menu(
       customOpts = list(
@@ -118,5 +124,6 @@ handsontableR <- function(Submissions, min_count = 0, max_frac = 0, home = ".") 
                    callback = htmlwidgets::JS(
                      csv_function_string
                    ))))
+  )
 }
 

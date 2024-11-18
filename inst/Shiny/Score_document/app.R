@@ -82,9 +82,13 @@ server <- function(input, output, session) {
   observeEvent(
     ignoreNULL = TRUE,
     values$directory,
-    updateSelectInput(session, "document",
-                      choices = c("NONE", document_names(values$directory)$docid),
-                      selected = "NONE")
+    { document_choices <- document_names(values$directory)$docid
+      document_choices <- gsub("\\.rmarkdown$", "", document_choices) |>
+        sort()
+      updateSelectInput(session, "document",
+                        choices = c("NONE", document_choices),
+                        selected = "NONE")
+    }
   )
 
   observeEvent(
@@ -95,8 +99,8 @@ server <- function(input, output, session) {
 
         values$doc_summary <- NULL
       } else {
-          values$doc_summary <-summarize_document(values$directory,
-                                                  docid=input$document)
+          values$doc_summary <- summarize_document(values$directory,
+                                                   docid = input$document)
           values$document <- input$document
           values$MC_info <- score_MC(values$doc_summary$MC)
           output$MC_handson_mc <- renderRHandsontable(handsontableMC(values$doc_summary, home=values$directory))

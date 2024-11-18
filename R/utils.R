@@ -34,13 +34,20 @@ parse_item_options <- function(s) {
 
 
 random_negative <- function() {
-  phrases <- c("no", "Sorry!", "wrong", "Try again!", "Better luck next time.",
-               "Not quite right", "incorrect choice", "You're mistaken", "wide of the mark")
+  phrases <- c("No.", "Sorry!", "Wrong.", "Try again!", "Better luck next time.",
+               "Not quite right.", "Incorrect choice.", "You're mistaken",
+               "This is wide of the mark.", "You're wrong here.", "Boo!", "Not quite.",
+               "You might think so, but ...", "Think again.", "Untrue!", "Not on target.",
+               "Nope.", "Incorrect.", "Not so!", "Oops!", "Hmmm ...")
   sample(phrases, 1)
 }
 
 random_positive <- function() {
-  phrases <- c("Right", "Correct", "Yes", "Good job!", "Excellent!", "Nice.", "right-o", "You're right")
+  phrases <- c("Right.", "Correct.", "Yes.", "Yes!", "Good job!", "Excellent!",
+               "Nice.", "Right-O!", "You're right.", "You're right!", "Right!",
+               "Spot on!", "Yup!", "You've got it!", "That's right.", "Yeah!", "Score!",
+               "A hit!", "Bullseye!", "Right on the nose!", "Bingo!", "Exactly.",
+               "Certainly.", "A win!")
   sample(phrases, 1)
 }
 

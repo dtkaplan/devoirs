@@ -10,6 +10,9 @@ devoirs_start <- function(documentID = knitr::current_input(),
   if (is.null(collectURL)) warning("Must provide URL for submissions.")
   if (is.null(documentID)) warning("Provide a unique document ID")
 
+  # clean up the document ID
+  documentID <- gsub("\\.rmarkdown$", ,"", documentID)
+
   glue::glue(r'{<span id="devoirs-docID" style="display: none;">{documentID}</span>
     <button onclick="devoirsSubmit()">Collect your answers</button> then paste them <a href="{collectURL}" target="popup">here</a>.
     <div id="devoirs_summary">No answers yet collected</div>}')

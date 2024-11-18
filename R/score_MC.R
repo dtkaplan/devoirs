@@ -8,6 +8,9 @@ score_MC <- function(submissions, min_count = 0, min_frac = 0) {
   # handle submissions either as a MC component or a stand-alone data frame
   if ("MC" %in% names(submissions)) submissions <- submissions$MC
 
+  if (nrow(submissions) == 0 )
+    return(list(students = tibble::tibble(),
+                items = tibble::tibble()))
   # discard skipped items
   submissions <- submissions |>
     dplyr::filter(!w == "skipped") |>
@@ -29,7 +32,7 @@ score_MC <- function(submissions, min_count = 0, min_frac = 0) {
                      .by = itemid)
 
   Students <- submissions |> # arrange by student
-    dplyr::left_join(Items) |> # get the item counts
+    dplyr::left_join(Items, by = dplyr::join_by(itemid)) |> # get the item counts
     dplyr::mutate(raw_correct = sum(w), .by = email) |>
     # keep only the most popular items
     dplyr::filter(item_count >= min_count, item_fraction > min_frac) |>
