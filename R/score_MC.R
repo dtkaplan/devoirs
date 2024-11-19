@@ -4,7 +4,7 @@
 #' @param count Minimum count (as integer) for item to be scored
 #' @param frac Minimum fraction (as decimal) for item to be scored
 #' @export
-score_MC <- function(submissions, min_count = 0, min_frac = 0) {
+score_MC <- function(submissions, min_count = 0, min_frac = 0, document="unknown") {
   # handle submissions either as a MC component or a stand-alone data frame
   if ("MC" %in% names(submissions)) submissions <- submissions$MC
 
@@ -15,9 +15,6 @@ score_MC <- function(submissions, min_count = 0, min_frac = 0) {
   submissions <- submissions |>
     dplyr::filter(!w == "skipped") |>
     dplyr::mutate(w = as.integer(w))
-  #check that it has the right columns
-  # if (!all(c("itemid", "w", "time", "email") %in% names(submissions)))
-  #   stop("Ill-formed MC submissions. Columns not matched")
 
   if (!is.logical(submissions$w)) {
     # hasn't yet been decoded, so do so
@@ -27,7 +24,7 @@ score_MC <- function(submissions, min_count = 0, min_frac = 0) {
 
   Items <- submissions |> # arrange by item id
     dplyr::summarize(item_count = dplyr::n(), item_correct = sum(w),
-                     item_fraction = item_correct / item_count,
+                     item_fraction = signif(item_correct / item_count, 2),
                      item_weight = 2/(item_fraction + 1),
                      .by = itemid)
 
@@ -43,15 +40,35 @@ score_MC <- function(submissions, min_count = 0, min_frac = 0) {
       raw_count = mean(raw_correct),   # just to put raw_count in the output
       .by = email)
 
-
   list(students = Students, items = Items)
 }
 
+#' Combine the stored scores (old) if any with
+#' scores derived from the raw submissions (new)
+#' @export
+merge_scores <- function(old, new) {
+  if (!is.null(old) && nrow(old) > 0) {
+    # Bring in score column from old grades
+    suppressMessages(
+      Both <- new |> dplyr::left_join(old, by = dplyr::join_by(email, itemid))
+    )
+    Both <- Both |>
+      dplyr::mutate(score = ifelse(is.na(score), 0, score))
+  } else {
+    Both <- new |>
+      dplyr::mutate(score = 0) #default score
+  }
 
-# Perhaps grade by examining <students> matrix n_correct (for most popular items)
-# and raw_count (for less popular items that this student answered.)
+  # turn the score into individual columns
+  Both <- Both |>
+    dplyr::mutate(
+      `0` = score == 0,
+      `1` = score == 1,
+      `2` = score == 2,
+      `3` = score == 3
+    ) |>
+    dplyr::select(-score)
 
-# Check items by looking a <items> item_fraction or looking at the item_count
-# to see if students even attempted them.
-
+  Both
+}
 

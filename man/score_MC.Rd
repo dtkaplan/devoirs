@@ -4,7 +4,7 @@
 \alias{score_MC}
 \title{Construct MC grading matrices for a document}
 \usage{
-score_MC(submissions, min_count = 0, min_frac = 0)
+score_MC(submissions, min_count = 0, min_frac = 0, document = "unknown")
 }
 \arguments{
 \item{submissions}{The MC component of the summarize_document() output}

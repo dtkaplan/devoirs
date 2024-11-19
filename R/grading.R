@@ -180,13 +180,13 @@ summarize_document <- function(
     # Grab the MC component
     MC <- collect_component(Subs, "MC", For_student$Timestamp)
 
-    # get rid of the unlabelled items
-    # MC <- MC |> dplyr::filter(!grepl("null$", itemid))
-
 
     MC$email <- student # add the student's ID
     Essays <- collect_component(Subs, "Essays", For_student$Timestamp)
-    Essays$email <- student
+    if (nrow(Essays) > 0) {
+      Essays$email <- student
+      Essays$time <- For_student$Timestamp
+    }
     # Handle differently, since each submission$R is a character vector
     # with the timestamp already embedded
     R <- c(sapply(Subs, function(x) x$R))
@@ -196,7 +196,7 @@ summarize_document <- function(
     R <- lapply(R, FUN = parse_webr_event) |>
       dplyr::bind_rows() |>
       unique() |> # avoid duplicates
-      dplyr::arrange(label, time)
+      dplyr::arrange(itemid, time)
     R$email <- student
 
     #
@@ -208,7 +208,12 @@ summarize_document <- function(
   if (nrow(allEssays) > 0) {
     # remove empty essays
     allEssays <- allEssays |>
-      dplyr::filter(contents != "")
+      dplyr::filter(contents != "") |>
+      dplyr::filter(time == max(time))
+  }
+  if (nrow(allR) > 0) {
+    allR <- allR |>
+      dplyr::filter(time == max(time), .by = c(itemid, email))
   }
   list(MC = allMC, Essays = allEssays, R = allR, docid = docid)
 
@@ -216,36 +221,6 @@ summarize_document <- function(
   # There should in the end be just one row for each itemid
 
 
-}
-
-#' Score multiple choice problems for one student for one assignment
-#' THIS HAS BEEN REPLACED by version in score_MC.R
-# score_MC <- function(MC) {
-#   correct_set <- devoirs:::devoirs_true_code()
-#   MC |> filter(w != "skipped") |>
-#     # is the answer right?
-#     mutate(w = w %in% correct_set) |> # Primative decoding: was it the correct choice.
-#     mutate(nright = sum(w), nwrong = n() - nright, last = w, .by = itemid) |>
-#     # get last submission along with tallies for the others
-#     arrange(desc(time), .by = itemid) |>
-#     dplyr::filter(row_number() == 1, .by=itemid)
-# }
-
-#' Format the R history for display
-#' Print this with knitr::kable()
-#' Maybe reformat <time> to be "days ago"
-format_R <- function(Revents, time_unit = NULL) {
-  # see if the code parses
-  Revents$runs <- (sapply(Revents$code, function(x) !inherits(try(eval(parse(text=x)), silent=TRUE), "try_error"), simplify = TRUE))
-  Revents$time <- lubridate::mdy_hms(Revents$time)
-  if (time_unit %in% c("days", "hrs")) {
-    # Convert to days ago.
-    Revents$time = (Revents$time - Sys.time())  |> as.numeric(time_unit)
-  }
-  Revents |>
-    # mutate(code = gsub("\n", "  ;  ", code)) |>
-    dplyr::arrange(label, desc(time)) |>
-    select(time, label, runs, code)
 }
 
 ## Helpers
@@ -273,7 +248,7 @@ parse_webr_event <- function(events) {
   code <- gsub("# \\[.*\\]\n", "", events)
   # code <- stringr::str_extract(events, "\n([^:]*$)")
   # code <- gsub("^\n", "", code)
-  tibble::tibble(label = chunks, code = code, time = times)
+  tibble::tibble(itemid = chunks, code = code, time = times)
 
 }
 
