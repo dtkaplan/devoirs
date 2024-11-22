@@ -14,11 +14,13 @@ RoxygenNote: 7.2.1
 VignetteBuilder: knitr
 Imports: 
     htmltools,
-    knitr
+    knitr,
+    rstudioapi
 Suggests:
     googlesheets4,
     yaml,
     dplyr,
     jsonlite,
     stringr,
+    shiny
 

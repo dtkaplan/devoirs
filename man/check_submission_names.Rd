@@ -5,7 +5,11 @@
 \title{Are the submissions names a subset of the class roster. If not,
 that suggests that either the submissions or the class roster are wrong.}
 \usage{
-check_submission_names(home = ".", since = "2000-1-1 00:00:01 UTC")
+check_submission_names(
+  home = ".",
+  since = "2000-1-1 00:00:01 UTC",
+  silent = FALSE
+)
 }
 \description{
 Are the submissions names a subset of the class roster. If not,

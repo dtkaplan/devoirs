@@ -1,7 +1,6 @@
 # Shiny app to coordinate scoring a document
 
 library(shiny)
-library(shinyDirectoryInput)
 library(devoirs)
 library(rhandsontable)
 library(bslib)
@@ -15,12 +14,10 @@ ui <- page_navbar(
 
   # Sidebar with a slider input for number of bins
   nav_panel("[Select document]",
-            titlePanel("Select document to grade"),
-            "Remember to save scores before choosing a new document!",
-            directoryInput('directory',
-                           label = 'Select course grading folder',
-                           value = '~/Packages/devoirs/inst/Grading-example/'),
+            titlePanel("Select course and document"),
             span("Course name:     ", textOutput("course_name", inline=TRUE)),
+            actionButton("select_dir", "Select grading directory."),
+            "Remember to save scores before choosing a new document!",
             selectInput("document", "Select Document", choices = "NONE")
   ),
 
@@ -52,59 +49,66 @@ ui <- page_navbar(
 )
 
 server <- function(input, output, session) {
-  values <- reactiveValues(course_name = "NO COURSE SELECTED YET")
-  # choose a directory
+  values <- reactiveValues(course_name = "Not in valid grading directory",
+                           valid_directory = FALSE)
+  # was a directory passed as an argument (named "cwd")?
+  observe( {
+    values$directory <- getShinyOption("cwd", ".")
+    if (devoirs::is_valid_directory(home = values$directory))
+      values$valid_directory <- TRUE
+    cat("directory is ", values$directory, "\n")
+  })
+
+
+  # Respond to select directory button event
   observeEvent(
     ignoreNULL = TRUE,
-    eventExpr = {
-      input$directory
-    },
-    handlerExpr = {
-      if (input$directory > 0) {
-        # condition prevents handler execution on initial app launch
+    input$select_dir,
+    {
+      values$directory <-
+        rstudioapi::selectDirectory(
+          caption="Select the appropriate grading directory.")
+      values$valid_directory <- devoirs::is_valid_directory(values$directory)
+    }
+  )
 
-        # launch the directory selection dialog with initial path read from the widget
-        path = choose.dir(default = readDirectoryInput(session, 'directory'))
 
-        # update the widget value
-        updateDirectoryInput(session, 'directory', value = path)
+  # Display available documents for the current directory
+  observeEvent(
+    ignoreNULL = TRUE,
+    values$directory,
+    {
+      if (values$valid_directory) {
+        document_choices <- devoirs::document_names(values$directory)$docid
+        document_choices <- gsub("\\.rmarkdown$", "", document_choices) |>
+          sort()
+        updateSelectInput(session, "document",
+                          choices = c("NONE", document_choices),
+                          selected = "NONE")
+      } else {
+        updateSelectInput(session, "document",
+                          choices = c("NONE"),
+                          selected = "NONE")
       }
     }
   )
 
-  # change the working directory
+  # Handle selection of document
   observeEvent(
     ignoreNULL = TRUE,
-    input$directory,
+    c(values$valid_directory, input$document),
     {
-      values$directory <- readDirectoryInput(session, "directory")
-    }
-  )
+      if (!values$valid_directory) return()
 
-  observeEvent(
-    ignoreNULL = TRUE,
-    values$directory,
-    { document_choices <- document_names(values$directory)$docid
-      document_choices <- gsub("\\.rmarkdown$", "", document_choices) |>
-        sort()
-      updateSelectInput(session, "document",
-                        choices = c("NONE", document_choices),
-                        selected = "NONE")
-    }
-  )
-
-  observeEvent(
-    ignoreNULL = TRUE,
-    input$document,
-    {
       if (input$document == "NONE") { # nothing to do
         values$doc_summary <- NULL
-      } else {
+      } else if (devoirs::is_valid_directory(values$directory)) {
           values$doc_summary <- summarize_document(values$directory,
                                                    docid = input$document)
           values$document <- input$document
+          # Read in any previous scores on this document
           old_scores <- new.env()
-          score_name <- glue::glue("{values$directory}Score_files/{values$document}-scores.rda")
+          score_name <- glue::glue("{values$directory}/Score_files/{values$document}-scores.rda")
           if (file.exists(score_name)) {
             load(score_name, envir = old_scores)
           } else {
@@ -178,6 +182,19 @@ server <- function(input, output, session) {
 
   )
 
+  # Check if we are in a valid grading directory
+  valid_directory <- reactive(devoirs::is_valid_directory(values$directory))
+  course_params <- reactive({
+    devoirs::get_course_params(values$directory, silent = TRUE)
+  })
+  course_name <- reactive({
+    if (valid_directory()) {
+        course_params()$`course-name`
+      } else {
+        "Not in valid grading directory"
+      }
+  })
+
   # Process the R submissions
   observeEvent(
     ignoreNULL = TRUE,
@@ -201,19 +218,11 @@ server <- function(input, output, session) {
       } else {
         output$R_handson <- NULL
       }
-
     }
-
   )
 
-
-          # output$MC_handson <- renderRHandsontable(handsontableMC(values$doc_summary, home=values$directory))
-          # output$MC_diagnostics <- renderDataTable(values$MC_info$items)
-          # output$essays_handson <- renderRHandsontable(handsontableEssays(values$doc_summary))
-
-
-  output$course_name <- renderText({values$course_name})
-
+  # Put the name of the current document in each of the
+  # scoring displays
   output$doc_label_essays <- output$doc_label_MC_diag <-
     output$doc_label_MC_score <- output$doc_label_essay <-
     output$doc_label_R <-
@@ -222,11 +231,13 @@ server <- function(input, output, session) {
   })
 
   output$documentlist <- renderText({
-    params <- get_course_params(values$directory)
-    if (is.null(params)) return("Not in valid directory")
-    paste(document_names(values$directory)$docid, collapse = "...")
-    })
-
+    if (valid_directory()) {
+      paste(document_names(values$directory)$docid, collapse = "...")
+    } else {
+      return("NONE")
+    }
+  }
+)
   observeEvent(
     ignoreNULL = TRUE,
     c(input$save_MC, input$save_Essays, input$save_R),
@@ -257,19 +268,13 @@ server <- function(input, output, session) {
                                                ifelse (`1`, 1, 0)))) |>
           dplyr::select(-`0`, -`1`, -`2`, -`3`)
       }
-      store_name <- paste0(values$directory, "Score_files/", values$document, "-scores.rda")
+      store_name <- paste0(values$directory, "/Score_files/", values$document, "-scores.rda")
       save(MC, Essays, RC, file = store_name)
     }
   )
 
-  observeEvent(
-    values$directory,
-    {
-      params <- get_course_params(values$directory)
-      if (is.null(params)) return("Not in valid directory")
-      else values$course_name <- params$`course-name`
-    }
-  )
+  # Display the course name
+  output$course_name <- renderText(course_name())
 }
 
 # Run the application

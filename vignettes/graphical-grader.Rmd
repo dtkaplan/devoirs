@@ -1,0 +1,85 @@
+---
+title: "Using the `{devoirs}` graphical grader"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using the devoirs graphical grader}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r include=FALSE}
+library(devoirs)
+```
+
+Preliminary nomenclature:
+
+`{devoirs}`
+: An R package that works in conjunction with Quarto to produce interactive html files
+
+`{devoirs}` document
+: A `.qmd` source file that is compiled to HTML. 
+
+`{devoirs}` HTML file
+: The file produced by compiling the `{devoirs}` document. You should arrange for these HTML file to be available to your students by placing them on a web site. 
+
+`webr` chunk
+: An item in a `{devoirs}` document that is similar to an ordinary Rmarkdown R chunk but uses the identifier `:::{webr-r}` instead of `:::{r}`. Students can edit and run R commands in `webr` chunks while viewing the HTML-version of the document.
+
+`MCQ`
+: The identifier used for individual interactive multiple-choice questions witin a `{devoirs}` document.
+
+Essay
+: Another interactive element within a `{devoirs}` document that is suitable for free-form text answers.
+
+JSON string
+: The format used by `{devoirs}` HTML files to collect student answers to the questions and webr chunks in a document. We will also use "JSON string" or "submission" to refer to the contents of this string.
+
+collection site
+: A facility, set up by the course instructor, where students can upload (or simply "paste") the JSON string from their work with course HTML files.
+
+`{devoirs}` course
+: Consists of at least two items: a set of one or more `{devoirs}` HTML files and a collection site.
+
+`{devoirs}` grading directory
+: A directory (set up in a way described below) for assembling student submissions, grading them, and summarizing the grades in a gradebook.
+
+
+MCQs, Essays, and `webr` chunks embedded in a `{devoirs}` html file are linked to a "Collect your answers" button. Pressing this button causes relevant information to be assembled (using javascript in the html file) and formatted as JSON. The formatted information is automatically copied to the user's clipboard.
+
+Instructors should set up collection site where students submit the JSON string to a site of their own choosing. I find that a Google Form provides a nice site. An example is [here](https://docs.google.com/forms/d/e/1FAIpQLSevJgyHTRHm6_HVQqrYMd8wjMYifPknPLXtpVTunlWlO7RbMw/viewform), but do not use this for your own students because you do not have read permissions on the corresponding spreadsheet. So set up your own Google Form site and generate the web link to the submissions form (which will be student facing) and another web link (which only graders will need) which points to the Google-Form published CSV file. (You need to use the "export as" feature in the Google Forms editor to produce this.)
+
+Put the student-facing collection site link on your course web site or even within your `{devoirs}` document. Write down the Google Form CSV link for your `{devoirs}` grading directory.
+
+## Creating a grading directory
+
+Typically you will have a single grading directory for each course, or perhaps each section of a course or some other unit of course activity. From a student's point of view, the course corresponds to the collection site link. From the instructor's point of view, the course also includes the grading directory. Only one "course" can be in each grading directory. Use multiple grading directories when you have multiple courses.
+
+You can use a convenience function to set up the grading directory. Of course, replace `"my_course_name"` with your actual course name.
+
+```r
+devoirs::create_grading_directory("my_course_name")
+```
+
+A grading directory consists initially of one file and one sub-directory. You make the grading directory only once.
+
+- `course-parameters.yml` a YAML file describing the course name, the link to the Google Forms CSV file, and the roster of identifiers for individual students in the course. (I use the students' email addresses for this roster.)
+- A sub-directory named `Score_files`.
+
+When you start using the grading directory, particularly when you call `update_submissions()`, another file will be created:
+
+- `Permanent_store.RDS` a file established and maintained by `{devoirs}` to hold all of the student submissions that have been downloaded from the collection site. You do not need to work with this file directly. 
+
+## Updating submissions
+
+Student submissions are stored on your collection site. The graphical grader works with a file local to the grading directory, named `Permanent_store.RDS`. The `Permanent_store.RDS` file de-duplicates submissions and is the set of submissions used for grading.
+
+When you want to collect any new submissions from the collection site, change the R working directory to the grading directory and give this command:
+
+```r
+update_submissions()
+```
+
+## Opening the graphical grader
+
+

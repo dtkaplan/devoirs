@@ -4,7 +4,7 @@
 \alias{get_class_roster}
 \title{Who is registered for the class}
 \usage{
-get_class_roster(home = ".", section = NULL)
+get_class_roster(home = ".", section = NULL, silent = FALSE)
 }
 \arguments{
 \item{section}{FOR FUTURE USE}

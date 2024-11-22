@@ -8,13 +8,13 @@
 \alias{document_names}
 \title{Functions for grading}
 \usage{
-get_course_params(home = ".")
+get_course_params(home = ".", silent = FALSE)
 
-get_new_submissions(home = ".")
+get_new_submissions(home = ".", silent = FALSE)
 
-get_historic_data(home = ".", since = "2000-1-1 00:00:01 UTC")
+get_historic_data(home = ".", since = "2000-1-1 00:00:01 UTC", silent = FALSE)
 
-update_submissions(home = ".")
+update_submissions(home = ".", silent = FALSE)
 
 document_names(home = ".", since = "2000-1-1 00:00:01 UTC")
 }
