@@ -16,9 +16,10 @@ ui <- page_navbar(
   nav_panel("[Select document]",
             titlePanel("Select course and document"),
             span("Course name:     ", textOutput("course_name", inline=TRUE)),
+            selectInput("document", "Select Document", choices = "NONE"),
+            actionButton("get_submissions", "Get new submissions"),
             actionButton("select_dir", "Select grading directory."),
-            "Remember to save scores before choosing a new document!",
-            selectInput("document", "Select Document", choices = "NONE")
+            "Remember to save scores before choosing a new document!"
   ),
 
   # Show a plot of the generated distribution
@@ -59,6 +60,14 @@ server <- function(input, output, session) {
     cat("directory is ", values$directory, "\n")
   })
 
+  observeEvent(
+    ignoreNULL = TRUE,
+    input$get_submissions,
+    {
+      if (devoirs::is_valid_directory(values$directory))
+        update_submissions(values$directory)
+    }
+  )
 
   # Respond to select directory button event
   observeEvent(
@@ -138,9 +147,10 @@ server <- function(input, output, session) {
           dplyr::select(-n_correct, -weighted_correct, -raw_count)
       }
       Merged <- merge_scores(old = old_scores, new = values$MC_students)
-      Merged <- Merged |>
-        dplyr::select(n_correct, weighted_correct, raw_count, `0`, `1`, `2`, `3`, email)
       if (nrow(Merged) > 0) {
+        Merged <- Merged |>
+                dplyr::select(n_correct, weighted_correct, raw_count, `0`, `1`, `2`, `3`, email)
+
         forDisplay <- suppressWarnings(
           rhandsontable(Merged) |>
             hot_cols(columnSorting = TRUE)
@@ -210,6 +220,11 @@ server <- function(input, output, session) {
 
         Merged <- Merged |>
           dplyr::select(itemid, code, `0`, `1`, `2`, `3`, email)
+        # get rid of set-up chunks (which students didn't write)
+        # or really long chunks
+        Merged <- Merged |>
+          dplyr::filter(!grepl("-setup$", itemid)) |>
+          dplyr::mutate(code = ifelse(nchar(code) > 500, substr(code,1,500), code))
         forDisplay <- suppressWarnings(
           rhandsontable(Merged) |>
             hot_cols(columnSorting = TRUE)

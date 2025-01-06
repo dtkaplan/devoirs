@@ -51,7 +51,9 @@ Instructors should set up collection site where students submit the JSON string 
 
 Put the student-facing collection site link on your course web site or even within your `{devoirs}` document. Write down the Google Form CSV link for your `{devoirs}` grading directory.
 
-## Creating a grading directory
+
+
+## Creating a grading directory {#sec-grading-directory}
 
 Typically you will have a single grading directory for each course, or perhaps each section of a course or some other unit of course activity. From a student's point of view, the course corresponds to the collection site link. From the instructor's point of view, the course also includes the grading directory. Only one "course" can be in each grading directory. Use multiple grading directories when you have multiple courses.
 
@@ -63,23 +65,77 @@ devoirs::create_grading_directory("my_course_name")
 
 A grading directory consists initially of one file and one sub-directory. You make the grading directory only once.
 
-- `course-parameters.yml` a YAML file describing the course name, the link to the Google Forms CSV file, and the roster of identifiers for individual students in the course. (I use the students' email addresses for this roster.)
+- `course-parameters.yml` a YAML file describing the course name, the link to the Google Forms spreadsheet file, and the roster of identifiers for individual students in the course. (I use the students' email addresses for this roster.)
 - A sub-directory named `Score_files`.
+
+To construct the link to the Google Forms spreadsheet file, go from the Google Form editor to the spreadsheet view of the submissions. In the upper-right corner there is a share button. The main part of the button allows you to grant access to other instructors (if needed). The drop-down part of the button has a "copy link" item. Press that to get a URL for the spreadsheet, then paste that as a quoted string in the `submissions-file field of the `course-parameters.yml` document.
 
 When you start using the grading directory, particularly when you call `update_submissions()`, another file will be created:
 
 - `Permanent_store.RDS` a file established and maintained by `{devoirs}` to hold all of the student submissions that have been downloaded from the collection site. You do not need to work with this file directly. 
 
-## Updating submissions
-
-Student submissions are stored on your collection site. The graphical grader works with a file local to the grading directory, named `Permanent_store.RDS`. The `Permanent_store.RDS` file de-duplicates submissions and is the set of submissions used for grading.
-
-When you want to collect any new submissions from the collection site, change the R working directory to the grading directory and give this command:
-
-```r
-update_submissions()
-```
-
 ## Opening the graphical grader
 
+You must use the graphical grader from within RStudio. Make sure the "Console" is visible and give this command:
+
+```r
+devoirs::open_graphical_grader()
+```
+
+This will display a dialog box to allow you to select a grading directory. (If you haven't yet made the grading directory for your course, see @sec-grading-directory.) Then a browser window will be opened containing the graphical grader. There is a menu at the top of the window with several tabs: [select document], [score MC], [MC diagnostics], [Essays], and [R chunks]. The [select document] tab will be open at first. 
+
+If the course name is not correctly display, for some reason, you selected an invalid directory in the `open_graphical_grader()` dialog, you can fix things with the "Select
+
+## Select Document: [select document]
+
+The [select document] allows you to choose a document from your course. Check that the displayed course name is correct. If not, press the "Select grading directory" button and navigate to the correct directory for the course you want to grade. 
+
+Initially, there may not be any documents listed in the drop-down menu. That will be case case if no submissions have been downloaded from the collection site. Press "**Get new submissions**" to download any submissions currently stored on the collection site. 
+
+IMPORTANT NOTE: If reading from a Google Forms collection site (the only kind of collection site currently supported), you will need to authenticate yourself. The message to do this appears in the **console** of RStudio, not in the graphical grading app. In the console, select whichever option is appropriate.  
+
+The "Select Document" drop down menu allows you to pick a document from your course. Only documents for which submissions have already been made will be displayed. 
+
+Once you have selected a document, the submissions made from that document will be automatically collated. You can display them by selecting one of [Score MC], [Essays], or [R chunks].
+
+## Multiple-choice diagnostics: [MC Diagnostics] {#sec-mc-diagnostics}
+
+If there were multiple-choice questions in the document for which answers have been submitted, a table will be displayed indicating for each multiple-choice item ID how many students answered, how many of these answers were collect, etc. 
+
+If you see an item for which a suspiciously low fraction of answers were incorrect, you may want to check the source materials for your course to see if the question was ill-framed or is otherwise faulty. (Do a global search in the RStudio editor for the item ID.) You may want to correct the source materials, but this will not change the student submissions. Such changes take effect only when you recompile the relevant document, deploy it on your course site, and students create new submissions from the updated document. Note that a student submitting a new answer to such a revised item will have that item scored, since the chronologically last submission for each item is used.
+
+## Scoring multiple-choice questions: [Score MC]
+
+Multiple-choice items are scored either correct or incorrect per the information provided in the document's source. The display in the [Score MC] tab lists the students who have made submissions *and are in the class-list* from the Course-parameters.yml file in the grading directory. For each student, the table lists the total number of answers submitted and the number of those that are correct. Multiple submissions by a student are automatically de-duplicated in favor of the most recent submission for each item. You don't need to intervene, except ....
+
+If you have determined that a question item was faulty, you can manually add compensatory submission points. Similarly, if a student makes a good case, you can manually add compensatory points. 
+
+::: {.callout-note}
+## Save your scores! {#sec-save-scores}
+Make sure to press the "Save Scores" button after you have viewed the or modified the scores. The same button appears on the [Essays] and [R chunks] tabs. Pressing any of them will save the scores from all three tabs: [Score MC], [Essays], and [R chunks]. 
+:::
+
+## Scoring essay answers: [Essays]
+
+The essay display is fundamentally different from the [Score MC] display. First, it relates to the `devoirs_text()` item in the document. Every item for which a student (in the *class-list*) made a submission is listed on its own line. (Multiple submissions are automatically de-duplicated in favor of the most recent submission.)
+
+Essays are not scored automatically. It's anticipated that later versions of the graphical grader will allow you to apply grading heuristics that will generate a score 0-3 for each essay item for each student. Until then, scoring is a matter of manually applying a score to each item. Sorting the essay score table by `itemid` will juxtapose all students' answers to each question, making it easier to score them.
+
+Remember to [Save your scores](#sec-save-scores)!
+
+## Scoring R chunks: [R chunks]
+
+Scoring here is done in much the same way as for [Essays]. Heuristics may become available in later versions of the graphical grader.
+
+Remember to [Save your scores](#sec-save-scores)!
+
+## Saved scores
+
+[Saving your scores](#sec-save-scores) for a document creates a corresponding file in the `Score_files` subdirectory of your grading directory. 
+
+Whenever you re-open a document in the graphical grading , the previous scores for each item will be read from the saved file and the scoring tabs will display those scores. In this way, you can score incrementally.
+
+## Tabularing scores into a grade-book
+
+Another app will be made available to read the scores stored in the `Score_files` directory, weight them, and construct a gradebook file. 
 
