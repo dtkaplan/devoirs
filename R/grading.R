@@ -2,52 +2,32 @@
 #'
 #' Assumptions: All work is done in a custom-made directory, just for the course
 #' That directory has a file course-parameters.yml that defines the course name and the
-#' file (or Google spreadsheet) that holds the submissions.
-#'
-#' Make sure we are in a valid directory and get the params
-#' @param home The directory to use. Default: the current working directory.
-#' @rdname grading
-#' @export
-get_course_params <- function(home = ".", silent = FALSE) {
-  # Prepare to return to the previous working directory
-  if (home !=  ".") {
-    old_dir <- setwd(home)
-    on.exit(setwd(old_dir))
-  }
+#' URL (e.g. via  Google spreadsheet) that holds the submissions.
 
-  fnames <- dir()
-  if ("course-parameters.yml" %in% fnames ) {
-    # Extract the parameters
-    params <- yaml::read_yaml("course-parameters.yml")
-    return(params)
-  } else {
-    if (!silent) {
-      warning(glue::glue("<{home}> is not a valid devoirs grading directory."))
-    }
-    return(list())
-  }
-
-}
 
 #' @export
 is_valid_directory <- function(home = ".") {
-  length(get_course_params(home, silent = TRUE)) > 0
+  length(get_course_params(home)) > 0
 }
 
 #' Get the new submissions from the repo
 #' @rdname grading
 #' @export
-get_new_submissions <- function(home = ".", silent = FALSE) {
-  params <- get_course_params(home, silent = silent)
-  tmp <- googlesheets4::read_sheet(params$`submissions-file`)
-  docids <- get_doc_id_helper(tmp)
+get_new_submissions <- function(home = ".") {
+  params <- get_course_params(home)
+  tmp <- readr::read_csv(params$submissions_file)
+  names(tmp)[c(2,3)] <- c("tentative", "contents")
+  # resolve the tentative submitter address to take care of aliases
+  tmp <- tmp |> dplyr::left_join(params$aliases)
+
+
+  tmp <- tmp |>
+    dplyr::mutate(Timestamp = convert_time_helper(Timestamp)) |>
+    dplyr::filter(submission_valid_contents(contents)) # purge ill-formed submissions
   if (nrow(tmp) == 0) {
-    if (!silent) warning("No new submissions")
     return(tibble::tibble())
   }
-
-  tmp <- tmp |> dplyr::mutate(docid = docids)
-  names(tmp)[c(2,3)] <- c("email", "contents")
+  tmp$docid <- get_doc_id_helper(tmp)
 
   tmp
 }
@@ -55,25 +35,25 @@ get_new_submissions <- function(home = ".", silent = FALSE) {
 #' Who is registered for the class
 #' @param section FOR FUTURE USE
 #' @export
-get_class_roster <- function(home = ".", section = NULL, silent = FALSE) {
-  params <- get_course_params(home, silent = silent)
+get_class_roster <- function(home = ".", section = NULL) {
+  params <- get_course_params(home)
   params["class_list"]
 }
 
 #' Are the submissions names a subset of the class roster. If not,
 #' that suggests that either the submissions or the class roster are wrong.
 #' @export
-check_submission_names <- function(home = ".", since = "2000-1-1 00:00:01 UTC", silent = FALSE) {
-  Subs <- get_historic_data(since = since, silent)
+check_submission_names <- function(home = ".", since = "2000-1-1 00:00:01 UTC") {
+  Subs <- get_historic_data(since = since)
   if (nrow(Subs) == 0) {
-    if (!silent) warning("No submissions available")
+    warning("No submissions available")
     return(list())
   }
 
   Subs <- Subs |>  dplyr::select(email) |>
     unique()
 
-  Students <- get_class_roster(home, silent)
+  Students <- get_class_roster(home)
 
   list(
     not_in_class = setdiff(Subs$email, Students$class_list),
@@ -85,20 +65,16 @@ check_submission_names <- function(home = ".", since = "2000-1-1 00:00:01 UTC", 
 #' @param since date for earliest submission to include. Format: "2024-11-18 00:00:01 UTC"
 #' @rdname grading
 #' @export
-get_historic_data <- function(home = ".", since = "2000-1-1 00:00:01 UTC", silent = FALSE) {
-  if (!is_valid_directory(home)) {
-    if (!silent) warning(home, " is not a grading directory.")
-    return(tibble::tibble())
-  }
+get_historic_data <- function(home = ".", since = "2000-1-1 00:00:01 UTC") {
   since <- convert_time_helper(since)
   store_file_name <- paste0(home, "/Permanent_store.RDS")
   if (file.access(store_file_name) == 0) {
-    tmp <- readRDS(store_file_name)
+    tmp <- readRDS(store_file_name) |>
+      dplyr::mutate(Timestamp = convert_time_helper(Timestamp))
     return(tmp |>  dplyr::filter(Timestamp > since))
   } else {
     warning(glue::glue("No <Permanent_store.RDS> file in directory <{home}>."))
-    browser()
-    return(NULL)
+    return(tibble::tibble())
   }
 }
 
@@ -108,55 +84,32 @@ get_historic_data <- function(home = ".", since = "2000-1-1 00:00:01 UTC", silen
 #' @param new_only If TRUE, just return the data newly read from the repo.
 #' @rdname grading
 #' @export
-update_submissions <- function(home = ".", silent = FALSE) {
+update_submissions <- function(home = ".") {
   if (!is_valid_directory(home)) {
-    if (!silent) warning(home, " is not a valid grading directory.")
+    warning(home, " is not a valid grading directory.")
     return(tibble::tibble()) # Empty data frame
   }
-  new_submissions <- get_new_submissions(home, silent = silent)
-
+  new_submissions <- get_new_submissions(home)
   ## Also check names, etc.
 
   # Check for access to Permanent_store.RDS and, if it exists, read it.
-  historic_data <- get_historic_data(home, silent)
+  historic_data <- get_historic_data(home)
   # Get rid of exact duplicates that are already stored
   # in <historic_data>
-  if (!is.null(historic_data)) {
+  if (nrow(historic_data) > 0) { # combine the old with the new
     # there is no historic data to be found!
     new_submissions <- dplyr::anti_join(new_submissions, historic_data)
   }
   historic_data <- dplyr::bind_rows(historic_data, new_submissions)
-  saveRDS(historic_data, file = "Permanent_store.RDS")
+  saveRDS(historic_data, file = paste0(home, "/Permanent_store.RDS"))
 
   historic_data
-}
-
-#' Get the names of the document ids present in the submissions
-#' @rdname grading
-#' @export
-document_names <- function(home = ".", since = "2000-1-1 00:00:01 UTC") {
-  since <- convert_time_helper(since)
-  Tmp <- get_historic_data(home, since)
-  if (!is.null(Tmp) && "contents" %in% names(Tmp)) {
-    Tmp <- Tmp |>
-      # Only keep those that pass the test for validity
-      dplyr::filter(submission_valid_contents(contents)) |>
-      # Construct a summary
-
-      dplyr::summarize(
-        count = dplyr::n(),
-        earliest = min(Timestamp),
-        latest = max(Timestamp),
-        .by = docid) |>
-      dplyr::mutate(docid = gsub("\\.rmarkdown$", "", docid)) |>
-      dplyr::arrange(desc(docid))
-  } else ""
 }
 
 # This should be made more comprehensive
 submission_valid_contents <- function(contents) {
   # does it begin with docid?
-  grepl("\\{\"docid\":", contents)
+  grepl("^\\{\"docid\":", contents)
   # maybe parse contents
 }
 
@@ -234,7 +187,7 @@ summarize_document <- function(
     # remove empty essays
     allEssays <- allEssays |>
       dplyr::filter(contents != "") |>
-      dplyr::filter(time == max(time))
+      dplyr::filter(time == max(time), .by = email)
   }
   if (nrow(allR) > 0) {
     allR <- allR |>
@@ -251,10 +204,18 @@ summarize_document <- function(
 ## Helpers
 convert_time_helper <- function(datetime) {
   if (inherits(datetime, "POSIXlt") || inherits(datetime, "POSIXct")) return(datetime)
-  if (inherits(datetime, "character"))
-    return(as.POSIXlt(datetime, tz = "UTC"))
-  warning("Unknown date-time format used.")
-  datetime # give it back unaltered
+
+  if (inherits(datetime, "character")) {
+    format <- ""
+    if (grepl("[0-9]{1,2}-", datetime[1])) format <- "%m-%d-%Y"
+    if (grepl("[0-9]{1,2}/", datetime[1])) format <- "%m/%d/%Y"
+    if (grepl("[0-9]{4}-", datetime[1])) format <- "%Y-%m-%d"
+    if (grepl("[0-9]{4}/", datetime[1])) format <- "%Y/%m/%d"
+    if (nchar(format) == 0) stop("Unrecognized YMD format.")
+
+    format <- paste(format, "%H:%M:%S")
+    as.POSIXlt(datetime, format = format, tz = "")
+  }
 }
 
 # Just for raw submissions, as read from the repo
@@ -262,7 +223,8 @@ get_doc_id_helper <- function(submission) {
   for_short <- submission[[3]] |> substr(3, 100)  # Has the document ID.
   shorter <- gsub("\"", "", for_short)
   # Pull out the document name
-  gsub("docid\\:(.*),MC.*$", "\\1", shorter)
+  names <- gsub("docid\\:(.*),MC.*$", "\\1", shorter)
+  gsub("\\..*$", "", names) # get rid of .rmarkdown etc.
 }
 
 # Turn the stuff in the webr history into a simple data frame
@@ -300,6 +262,6 @@ collect_component <- function(submissions, component = "MC", timestamps) {
     }
   }
 
-  dplyr::bind_rows(this_component)
+  dplyr::bind_rows(this_component) |> unique()
 }
 

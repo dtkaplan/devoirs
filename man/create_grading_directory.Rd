@@ -7,9 +7,28 @@
 create_grading_directory(course_name)
 }
 \arguments{
-\item{course_name}{A string specifying the name of the course.}
+\item{course_name}{A string specifying the name of the course. This should be a
+valid directory name.}
 }
 \description{
+Corresponding to the "collection site" for `{devoirs}` submissions, there should be a "grading
+directory" set up on your laptop. (You can have more than one, for instance, if you have several sections
+that you want to grade separately.)
+}
+\details{
+The grading directory is an ordinary directory that has two requirements:
+1. a `course-parameters.yaml` file in the appropriate format
+2. a `Score-files` subdirectory.
+
+`create_grading_directory()` will template that minimal structure. Once created, you must then
+edit the `course-parameters.yaml` file.
+a. the `course-name:` will already be filled in (and will also be the name of the directory)
+b. the `class-list:` will have dummy names. You need to replace these with the email addresses
+that your students will use on the submission site. (You can also add alias emails for any student separated by
+spaces in the same line as the student's "official" email. These get sorted out later.)
+c. the `submissions-file:` field should be edited to contain the URL to a CSV file on the collection site. How this
+is arranged depends on the kind of collection site. See the vignette.
+
 It's recommended that you keep `course_name` short and avoid any white space or
 characters that are disallowed in file or directory names. Example: "Stats_101_Fall_2025".
 }
