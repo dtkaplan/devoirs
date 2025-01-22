@@ -9,6 +9,8 @@ library(DT)
 ### FOR DEBUGGING
 
 
+## NEED TO CHECK FOR PERMANENTSTORE before doing the first summarization
+
 # Define UI for application that draws a histogram
 ui <- page_navbar(
 
@@ -44,6 +46,15 @@ ui <- page_navbar(
             titlePanel("R Chunks"),
             actionButton("save_R", "Save scores"),
             rHandsontableOutput("R_handson")
+  ),
+  nav_panel("[Summary score]",
+            span("Document:", textOutput("doc_label_summary_score", inline=TRUE)),
+            titlePanel("Summary score"),
+            p("Have you saved the scores from the other tabs?"),
+            selectInput("MC_multiplier", "Multiplier for MC", choices=1:20, selected=5),
+            verbatimTextOutput("CSV_score"),
+            dataTableOutput("Student_scores")
+
   )
 )
 
@@ -51,9 +62,13 @@ server <- function(input, output, session) {
 
   STATE <- reactiveValues() # place to store current document summary, submissions, etc.
 
-  homedir <- reactive({getShinyOption("cwd", "~UATX/GRADING/QR2-W25") })
-  course_name <- reactive({get_course_params(homedir())$course_name})
-  valid_dir <- reactive({devoirs::is_valid_directory(homedir())})
+  homedir <- reactive({getShinyOption("cwd", "~/UATX/GRADING/Calc25") })
+  course_name <- reactive({
+    get_course_params(homedir())$course_name
+    })
+  valid_dir <- reactive({
+    devoirs::is_valid_directory(homedir())
+    })
   submissions <- reactive({STATE$submissions})
   doc_summary <- reactive({STATE$doc_summary})
   observe({
@@ -67,7 +82,8 @@ server <- function(input, output, session) {
 
   output$nsubmissions <- renderText({
     tmp <- document_data()
-    if (input$document == "NONE") {
+    if (nrow(tmp) == 0) return("Initializing")
+    if (STATE$document == "NONE") {
       results <- tmp |> dplyr::summarize(count = sum(count),
                               earliest = min(earliest),
                               latest = max(latest),
@@ -75,12 +91,16 @@ server <- function(input, output, session) {
       glue::glue("{results$ndocuments} documents altogether.\n Total submissions: {results$count} \nfrom {results$earliest} \nto {results$latest}")
 
     } else {
-      results <- tmp |> dplyr::filter(docid == input$document)
+      results <- tmp |> dplyr::filter(docid == STATE$document)
       glue::glue("Total submissions: {results$count} from {results$earliest} to {results$latest}")
 
     }
 
   })
+
+  observe({
+    STATE$document <- input$document
+  }, priority = 1000)
 
   document_data <- reactive({
     if (nrow(submissions()) == 0) return(tibble::tibble())
@@ -101,9 +121,10 @@ server <- function(input, output, session) {
     ignoreNULL = TRUE,
     input$update_submissions,
     {
-      if (valid_dir()) {
+      # get new ones only if checked
+      if (valid_dir() && input$update_submissions) {
         STATE$submissions <- update_submissions(homedir())
-      } else stop("Not in valid directory")
+      }
     }
   )
 
@@ -123,17 +144,19 @@ server <- function(input, output, session) {
   )
 
   # Handle selection of document
-  observe({
+  observeEvent(
+    STATE$document,
+    {
       if (!valid_dir()) return()
 
-      if (input$document == "NONE") { # nothing to do
+      if (STATE$document == "NONE") { # nothing to do
         shiny::isolate(STATE$doc_summary <- NULL)
       } else {
           shiny::isolate(STATE$doc_summary <- summarize_document(homedir(),
-                                                  docid = input$document))
+                                                  docid = STATE$document))
           # Read in any previous scores on this document
           old_scores <- new.env()
-          score_name <- glue::glue("{homedir()}/Score_files/{input$document}-scores.rda")
+          score_name <- glue::glue("{homedir()}/Score_files/{STATE$document}-scores.rda")
           if (file.exists(score_name)) {
             load(score_name, envir = old_scores)
           } else {
@@ -164,6 +187,9 @@ server <- function(input, output, session) {
       }
       Merged <- merge_scores(old = old_scores, new = STATE$MC_students)
       if (nrow(Merged) > 0) {
+        if (is.null(STATE$old_scores$MC)) {
+          STATE$old_scores$MC <- Merged |> dplyr::select(email, itemid, score)
+        }
         Merged <- Merged |>
                 dplyr::select(n_correct, weighted_correct, raw_count, `0`, `1`, `2`, `3`, email)
 
@@ -174,8 +200,8 @@ server <- function(input, output, session) {
         output$MC_handson <- renderRHandsontable(forDisplay)
         output$MC_diagnostics <- renderDataTable(STATE$MC_items)
       } else {
-        output$MC_handson <- NULL
-        output$MC_diagnostics <- NULL
+        output$MC_handson <- renderRHandsontable(rhandsontable(tibble::tibble()))
+        output$MC_diagnostics <- renderRHandsontable(rhandsontable(tibble::tibble()))
       }
     }
   )
@@ -186,28 +212,28 @@ server <- function(input, output, session) {
     STATE$doc_summary,
     {
       old_scores <- STATE$old_scores$Essays
-      if (!is.null(old_scores)) {
-        old_scores <- old_scores |> dplyr::select(-contents)
-      }
+
       Merged <- merge_scores(old = old_scores,
                              new = STATE$doc_summary$Essays)
       # put in an empty table if <Merged> is empty
 
-      if (nrow(Merged) != 0) {
+
+      if (!is.null(Merged) && nrow(Merged) != 0) {
+        if (is.null(STATE$old_scores$Essays)) {
+          STATE$old_scores$Essays <- Merged |> dplyr::select(email, itemid, score)
+        }
         Merged <- Merged |>
           dplyr::select(itemid, contents, `0`, `1`, `2`, `3`, email) |>
           dplyr::mutate(contents = stringr::str_wrap(contents, width = 80, exdent=3)) |>
           dplyr::mutate(contents = gsub("  ", "  ", contents))
-        forDisplay <- suppressWarnings(
-          rhandsontable(Merged) |>
-            hot_cols(columnSorting = TRUE)
-        )
-        output$essays_handson <- renderRHandsontable(forDisplay)
-      } else {
-        output$essays_handson <- NULL
       }
-    }
+      forDisplay <- suppressWarnings(
+        rhandsontable(Merged) |>
+          hot_cols(columnSorting = TRUE)
+      )
+      output$essays_handson <- renderRHandsontable(forDisplay)
 
+    }
   )
 
 
@@ -220,13 +246,13 @@ server <- function(input, output, session) {
     STATE$doc_summary,
     {
       old_scores <- STATE$old_scores$RC
-      if (!is.null(old_scores)) {
-        old_scores <- old_scores |> dplyr::select(-code)
-      }
       Merged <- merge_scores(old = old_scores,
                              new = STATE$doc_summary$R)
       if (nrow(Merged) != 0) {
-
+        if( !"code" %in% names(Merged) ) Merged <- Merged |> rename(code = code.x)
+        if (is.null(STATE$old_scores$RC)) {
+          STATE$old_scores$RC <- Merged |> dplyr::select(email, itemid, score)
+        }
         Merged <- Merged |>
           dplyr::select(itemid, code, `0`, `1`, `2`, `3`, email)
         Merged <- Merged |> dplyr::mutate(code = ifelse(nchar(code) > 100, substr(code,1,100), code))
@@ -236,19 +262,58 @@ server <- function(input, output, session) {
         )
         output$R_handson <- renderRHandsontable(forDisplay)
       } else {
-        output$R_handson <- NULL
+        output$R_handson <- renderRHandsontable(rhandsontable(tibble::tibble()))
       }
     }
   )
 
+  # display the summary scores
+  output$Student_scores <- renderDataTable({
+    input$save_R     # for the dependencies
+    input$save_MC
+    input$save_Essays
+    input$MC_multiplier
+    RC <- if (is.null(STATE$old_scores$RC)) NULL
+    else {
+      STATE$old_scores$RC |> dplyr::select(email, itemid, score)
+    }
+    Essays <- if(is.null(STATE$old_scores$Essays)) NULL
+    else {
+      STATE$old_scores$Essays |>
+        dplyr::select(email, itemid, score)
+    }
+    MC <- if(is.null(STATE$old_scores$MC)) NULL
+    else{
+      STATE$old_scores$MC |> dplyr::select(email, score) |>
+        dplyr::mutate(itemid = "MC")
+    }
+    if (!is.null(MC)) {
+      MC$score <- MC$score * as.integer(input$MC_multiplier)
+    }
+
+    All <- dplyr::bind_rows(RC, Essays, MC)
+
+    All <- All |>
+      dplyr::summarize(total = sum(score), .by = email) |>
+      dplyr::select(email, total)
+#    STATE$student_doc_score <- All
+    forCSV <- All
+    names(forCSV) <- c("email", input$document)
+    row.names(forCSV) <- NULL
+    output$CSV_score <- renderText({
+      readr::format_csv(forCSV)
+      })
+    return(All)
+  })
+
   # Put the name of the current document in each of the
   # scoring displays
-  output$doc_label_essays <- output$doc_label_MC_diag <-
-    output$doc_label_MC_score <- output$doc_label_essay <-
-    output$doc_label_R <-
-    renderText({
-      gsub("\\.(rmarkdown)$", "", STATE$document)
-  })
+
+  output$doc_label_MC_diag <- renderText({STATE$document})
+  output$doc_label_MC_score <- renderText({STATE$document})
+  output$doc_label_essay <- renderText({STATE$document})
+  output$doc_label_R <- renderText({STATE$document})
+  output$doc_label_summary_score <- renderText(STATE$document)
 
   output$documentlist <- renderText({
     if (valid_dir()) {
@@ -262,7 +327,7 @@ server <- function(input, output, session) {
     ignoreNULL = TRUE,
     c(input$save_MC, input$save_Essays, input$save_R),
     {
-      if (is.null(STATE$document)) return()
+      if ("NONE" == STATE$document) return()
       MC <- hot_to_r(input$MC_handson)
       if (!is.null(MC)) {
         MC <- MC |>
@@ -271,8 +336,10 @@ server <- function(input, output, session) {
                                                ifelse (`1`, 1, 0)))) |>
           dplyr::select(-`0`, -`1`, -`2`, -`3`)
       }
+      STATE$old_scores$MC <- MC
       Essays <- hot_to_r(input$essays_handson)
       if (!is.null(Essays)) {
+        if ("contents" %in% names(Essays)) Essays <- Essays |> dplyr::select(-contents)
         Essays <- Essays |>
           dplyr::mutate(
             score = ifelse(`3`, 3,
@@ -280,7 +347,9 @@ server <- function(input, output, session) {
                                    ifelse (`1`, 1, 0)))) |>
           dplyr::select(-`0`, -`1`, -`2`, -`3`)
       }
+      STATE$old_scores$Essays <- Essays
       RC <- hot_to_r(input$R_handson)
+      if ("code" %in% names(RC)) RC <- RC %>% dplyr::select(-code)
       if (!is.null(RC)) {
         RC <- RC |>
           dplyr::mutate(score = ifelse(`3`, 3,
@@ -288,6 +357,7 @@ server <- function(input, output, session) {
                                                ifelse (`1`, 1, 0)))) |>
           dplyr::select(-`0`, -`1`, -`2`, -`3`)
       }
+      STATE$old_scores$RC <- RC
       store_name <- paste0(homedir(), "/Score_files/", STATE$document, "-scores.rda")
       save(MC, Essays, RC, file = store_name)
     }

@@ -20,8 +20,8 @@ open_graphical_grader <- function(dir_name = NULL) {
   if (!is_valid_directory(dir_name)) {
     while(TRUE) {
      dir_name <- rstudioapi::selectDirectory(caption="Select the grading directory.")
-     if (!is_valid_directory(dir_name)) break
-     else warn(glue::glue("{dir_name} is not a {{devoirs}} grading directory"))
+     if (is_valid_directory(dir_name)) break
+     else warning(glue::glue("{dir_name} is not a {{devoirs}} grading directory"))
     }
   }
 

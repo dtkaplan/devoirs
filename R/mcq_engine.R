@@ -11,6 +11,8 @@
 #' @export
 
 mcq_engine <- function(options) {
+  if ("results" %in% names(options) && options$results == "asis")
+    return(mcq_print_engine(options))
   # parse the contents of the chunk
   # First, get the yaml inside the chunk
   yamlopts <-
@@ -37,6 +39,54 @@ mcq_engine <- function(options) {
   knitr::knit_engines$set("mcq" = mcq_engine)
   knitr::knit_engines$set("mcqdebug" = mcq_debug_engine)
 }
+
+# Engine for printed typesetting
+#' @export
+mcq_print_engine <- function(options) {
+  # parse the contents of the chunk
+  # First, get the yaml inside the chunk
+  yamlopts <-
+    paste(gsub("#\\| ", "", options$yaml.code),
+          collapse="\n\n") |>
+    yaml::yaml.load()
+
+  if ("label" %in% names(yamlopts))
+    qID <- yamlopts$label
+  else {
+    warning("Must provide unique 'label: <name>' within each mcq chunk.")
+    yamlopts$label <- qID <- paste("no-label", date())
+  }
+  # keep labels unique
+  if (store_devoirs_labels$duplicated(qID)) warning(qID, " is a duplicated label.")
+  else store_devoirs_labels$add(qID)
+  choices <- mc_choices(options$code) # collection of all answer items
+
+  # put the items inline?
+  inline <- ("inline" %in% names(options)) &&
+    (is.null(options$inline) || options$inline)
+
+  get_choice_field <- function(choices, fname) {
+    unlist(lapply(choices, FUN = function(x) x[fname]))
+  }
+
+  identifiers <- 1:100
+  if ("letters" %in% names(options)) identifiers <- letters
+  if ("LETTERS" %in% names(options)) identifiers <- LETTERS
+  sep_char <- ifelse(inline, "    ", "\n")
+
+  lead_number <- if(inline) "" else identifiers[1:length(choices)]
+  if ("show_hints" %in% options ) {
+    hints <- get_choice_field(choices, "hints")
+  } else hints <- ""
+
+
+  its <- paste0(paste0("    ", lead_number, ". ",
+               get_choice_field(choices, "text"), hints),
+         sep = sep_char)
+
+  its
+}
+
 
 #' @export
 mcq_debug_engine <- function(options) {

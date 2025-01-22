@@ -46,17 +46,19 @@ score_MC <- function(submissions, min_count = 0, min_frac = 0, document="unknown
 #' Combine the stored scores (old) if any with
 #' scores derived from the raw submissions (new)
 #' @export
-merge_scores <- function(old, new) {
-  if (!is.null(old) && nrow(old) > 0) {
+merge_scores <- function(old, new, default_score = 2) {
+  if (is.null(old) || nrow(old) == 0) {
+    Both <- new |> dplyr::mutate(score = default_score)
+  } else if (nrow(new) == 0) {
+    return(tibble::tibble())
+  } else {
     # Bring in score column from old grades
+    if ("contents" %in% names(old)) old <- old |> dplyr::select(-contents)
     suppressMessages(
       Both <- new |> dplyr::left_join(old, by = dplyr::join_by(email, itemid))
     )
     Both <- Both |>
-      dplyr::mutate(score = ifelse(is.na(score), 0, score))
-  } else {
-    Both <- new |>
-      dplyr::mutate(score = 0) #default score
+      dplyr::mutate(score = ifelse(is.na(score), default_score, score))
   }
 
   # turn the score into individual columns
@@ -66,8 +68,7 @@ merge_scores <- function(old, new) {
       `1` = score == 1,
       `2` = score == 2,
       `3` = score == 3
-    ) |>
-    dplyr::select(-score)
+    )
 
   Both
 }

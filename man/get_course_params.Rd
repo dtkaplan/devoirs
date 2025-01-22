@@ -4,10 +4,12 @@
 \alias{get_course_params}
 \title{Get parameters for a devoirs-graded course directory}
 \usage{
-get_course_params(home = ".")
+get_course_params(home = ".", silent = FALSE)
 }
 \arguments{
 \item{home}{Character string specifying the grading directory for the course}
+
+\item{silent}{Logical flag: give a message.}
 }
 \description{
 Parses the YAML file with the course information and

@@ -3,19 +3,17 @@
 #' Parses the YAML file with the course information and
 #' re-arranges things like the student list to be primary and alias names
 #' @param home Character string specifying the grading directory for the course
+#' @param silent Logical flag: give a message.
 #'
 #' @export
-get_course_params <- function(home = ".") {
-  # Prepare to return to the previous working directory
-  if (home !=  ".") {
-    old_dir <- setwd(home)
-    on.exit(setwd(old_dir))
-  }
-
-  fnames <- dir()
-  if ("course-parameters.yml" %in% fnames ) {
+get_course_params <- function(home = ".", silent = FALSE) {
+  fname <-
+    tibble::tibble(full = dir(home, full.names = TRUE)) |>
+    dplyr::mutate(shortname = gsub("^.*/", "", full)) |>
+    dplyr::filter(shortname == "course-parameters.yml")
+  if (nrow(fname) > 0) {
     # Extract the parameters
-    params <- yaml::read_yaml("course-parameters.yml")
+    params <- yaml::read_yaml(fname$full)
     # Turn them into valid R names
     names(params) <- gsub("-", "_", names(params))
 
@@ -31,7 +29,10 @@ get_course_params <- function(home = ".") {
 
     return(params)
   } else {
-    stop(glue::glue("<{home}> is not a valid devoirs grading directory."))
+    if (!silent)
+      warning(glue::glue("<{home}> is not a valid devoirs grading directory."))
+
+    return(NULL)
   }
 
 }

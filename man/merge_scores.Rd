@@ -5,7 +5,7 @@
 \title{Combine the stored scores (old) if any with
 scores derived from the raw submissions (new)}
 \usage{
-merge_scores(old, new)
+merge_scores(old, new, default_score = 2)
 }
 \description{
 Combine the stored scores (old) if any with

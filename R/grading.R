@@ -7,7 +7,7 @@
 
 #' @export
 is_valid_directory <- function(home = ".") {
-  length(get_course_params(home)) > 0
+  !is.null(get_course_params(home))
 }
 
 #' Get the new submissions from the repo
@@ -142,7 +142,7 @@ summarize_document <- function(
 
   since <- convert_time_helper(since)
   until <- convert_time_helper(until)
-  doc_name <- docid # avoid a problem with filter()
+  doc_name <- docid # avoid a problem with dplyr::filter()
   allMC <- allEssays <- allR <- tibble::tibble()
   # Just the ones in the specified document,
   # within the since-to-last time frame

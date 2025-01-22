@@ -15,7 +15,9 @@ VignetteBuilder: knitr
 Imports: 
     htmltools,
     knitr,
-    rstudioapi
+    rstudioapi, 
+    rhandsontable,
+    DT
 Suggests:
     googlesheets4,
     yaml,
