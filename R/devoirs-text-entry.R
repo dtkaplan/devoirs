@@ -17,9 +17,10 @@ devoirs_text <- function(qID, rows=4, cols=50) {
       class = "devoirs-text",
       rows = rows,
       cols = cols,
-      placeholder = paste("Type here for question ID", qID)
-    ),
-    div(tags$small(paste("question id:", qID)), style="color: grey;")
+      placeholder = paste0("Type here. (ID ", qID, ")")
+    ) #,
+    # turned off this label. It's ugly and doesn't serve a purpose
+    # div(tags$small(paste("question id:", qID)), style="color: grey;")
   )
 
 }
