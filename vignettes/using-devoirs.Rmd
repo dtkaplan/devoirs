@@ -65,7 +65,10 @@ What color is the blue moon?
 
 The individual items are numbered (or provided with any other kind of label ending with a period). This label will not be printed out.
 
-Options that apply to all items use the inline-yaml style
+Options are set using the inline-yaml style.
+
+To turn on showing hints globally, as when producing an answer key, create a 
+global variable `devoirs_show_hints` and set to `TRUE`.
 
 ## Essay question: Example
 

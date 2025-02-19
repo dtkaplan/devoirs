@@ -26,9 +26,12 @@ mcq_engine <- function(options) {
     warning("Must provide unique 'label: <name>' within each mcq chunk.")
     yamlopts$label <- qID <- paste("no-label", date())
   }
+  if (exists("devoirs_show_hints") && devoirs_show_hints) yamlopts$show_hints <- TRUE
   # keep labels unique
   if (store_devoirs_labels$duplicated(qID)) warning(qID, " is a duplicated label.")
+
   else store_devoirs_labels$add(qID)
+
   choices <- mc_choices(options$code) # collection of all answer items
 
   emit_mcq_html(yamlopts, choices) |> as.character() |> HTML()
@@ -75,10 +78,13 @@ mcq_print_engine <- function(options) {
   sep_char <- ifelse(inline, "    ", "\n")
 
   lead_number <- if(inline) "" else identifiers[1:length(choices)]
-  if ("show_hints" %in% options ) {
+
+  # Turn on hints if `show_hints` is in mcq chunk option OR
+  # if global variable `devoirs_show_hints` is TRUE
+  if ("show_hints" %in% options ||
+      (exists("devoirs_show_hints") && devoirs_show_hints)) {
     hints <- get_choice_field(choices, "hints")
   } else hints <- ""
-
 
   its <- paste0(paste0("    ", lead_number, ". ",
                get_choice_field(choices, "text"), hints),

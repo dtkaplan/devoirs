@@ -292,14 +292,13 @@ server <- function(input, output, session) {
 
     All <- dplyr::bind_rows(RC, Essays, MC)
 
-    All <- All |>
+    forCSV <- All |>
       dplyr::summarize(total = sum(score), .by = email) |>
       dplyr::select(email, total)
-    STATE$student_doc_score <- All
-    forCSV <- All
+
     names(forCSV) <- c("email", input$document)
-    row.names(forCSV) <- NULL
-    return(All)
+    STATE$student_doc_score <- forCSV
+    return(forCSV)
   })
 
   # save the score CSV file
