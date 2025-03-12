@@ -52,7 +52,6 @@ mcq_print_engine <- function(options) {
     paste(gsub("#\\| ", "", options$yaml.code),
           collapse="\n\n") |>
     yaml::yaml.load()
-
   if ("label" %in% names(yamlopts))
     qID <- yamlopts$label
   else {
@@ -75,9 +74,19 @@ mcq_print_engine <- function(options) {
   identifiers <- 1:100
   if ("letters" %in% names(options)) identifiers <- letters
   if ("LETTERS" %in% names(options)) identifiers <- LETTERS
-  sep_char <- ifelse(inline, "    ", "\n")
+  if ("roman" %in% names(options)) {
+    identifiers <- c("i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x")
+    identifiers <- c(identifiers, paste0("x", identifiers), paste0("xx", identifiers), LETTERS)
+  }
 
-  lead_number <- if(inline) "" else identifiers[1:length(choices)]
+  sep_char <- ifelse(inline, "    ", "\n")
+
+  lead_number <- identifiers[1:length(choices)]
+  if(inline) {
+    lead_number <- paste0("(", lead_number, ") ")
+  } else {
+    lead_number <- paste0(lead_number, ". ")
+  }
 
   # Turn on hints if `show_hints` is in mcq chunk option OR
   # if global variable `devoirs_show_hints` is TRUE
@@ -86,7 +95,7 @@ mcq_print_engine <- function(options) {
     hints <- get_choice_field(choices, "hints")
   } else hints <- ""
 
-  its <- paste0(paste0("    ", lead_number, ". ",
+  its <- paste0(paste0(lead_number,
                get_choice_field(choices, "text"), hints),
          sep = sep_char)
 
