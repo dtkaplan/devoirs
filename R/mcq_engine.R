@@ -20,6 +20,9 @@ mcq_engine <- function(options) {
           collapse="\n\n") |>
     yaml::yaml.load()
 
+    # Experimenting with a prompt for inline
+  prompt <- if ("leed" %in% names(yamlopts)) paste0(yamlopts$leed, "  ") else ""
+
   if ("label" %in% names(yamlopts))
     qID <- yamlopts$label
   else {
@@ -34,7 +37,8 @@ mcq_engine <- function(options) {
 
   choices <- mc_choices(options$code) # collection of all answer items
 
-  emit_mcq_html(yamlopts, choices) |> as.character() |> HTML()
+  tmp <- tags$span(emit_mcq_html(yamlopts, choices)) |> as.character()
+  paste(prompt, tmp |> HTML())
 }
 
 # Set the knitr engine
@@ -172,7 +176,7 @@ emit_mcq_html <- function(options, choices) {
   }
 
   # add a hidden input which becomes the default answer
-  Res <- tagList(
+  Res <- tags$span(  # WAS tagList
     Res,
     # New radio button
     tags$input(type = "radio",
@@ -183,8 +187,8 @@ emit_mcq_html <- function(options, choices) {
                w = "skipped", # w is the correct/wrong/skipped field
                checked = ""
                ),
-    # Hint area
-    div(tags$small(paste("question id:", qID),
+    # Hint area: try to keep in line with answers.
+    ifelse(inline, span, div)(tags$small(qID,
         style = "color: grey;",
         id = paste0(qID, "-hintarea")),
         class = "hintarea"
@@ -199,7 +203,7 @@ emit_mcq_html <- function(options, choices) {
   #                         "false")
   # )
 
-  Res |> as.character() |> HTML()
+  tags$span(Res) |> as.character() |> HTML()
 }
 
 condense_text <- function(str, n=10, interpose=" ... ") {
@@ -224,7 +228,13 @@ emit_one_item_html <- function(options, choice, inline) {
              id = paste0(qID, "-", choice$orig_id),
              w = choice$w, # is the item to be marked correct
              name = qID,
-             hint = choice$hint,
+             ## Testing out conversion via tth() to a format that will render
+             ## math markup in hints like text
+             ## hint = tth::tth(choice$hint),
+             ## didn't work well
+             ## Attempt 2: mark the text as html with htmltools::HTML()
+             ## Doesn't seem to have an effect
+             hint = HTML(choice$hint),
              show_hints = ifelse ("show_hints" %in% names(options),
                                   options$show_hints, "false")
              ),
