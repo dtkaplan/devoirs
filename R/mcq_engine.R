@@ -176,7 +176,7 @@ emit_mcq_html <- function(options, choices) {
   }
 
   # add a hidden input which becomes the default answer
-  Res <- tags$span(  # WAS tagList
+  Res <- ifelse(inline, tags$span, tagList)(
     Res,
     # New radio button
     tags$input(type = "radio",
@@ -203,7 +203,7 @@ emit_mcq_html <- function(options, choices) {
   #                         "false")
   # )
 
-  tags$span(Res) |> as.character() |> HTML()
+  ifelse(inline, tags$span, I)(Res) |> as.character() |> HTML()
 }
 
 condense_text <- function(str, n=10, interpose=" ... ") {
