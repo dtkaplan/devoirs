@@ -23,8 +23,8 @@ devoirs_start_no_link <- function(documentID = knitr::current_input()) {
   if (is.null(documentID)) warning("Provide a unique document ID")
 
   glue::glue(r'{<span id="devoirs-docID" style="display: none;">{documentID}</span>
-    <button onclick="devoirsSubmit()">Collect your answers</button>
-    <div id="devoirs_summary">No answers yet collected</div>}')
+    <span><button onclick="devoirsSubmit()">Collect your answers</button></span>
+    <span id="devoirs_summary">No answers yet collected</span>}')
 }
 
 #' @export

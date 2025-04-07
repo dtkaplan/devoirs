@@ -4,7 +4,7 @@
 \alias{devoirs_text}
 \title{Create a text-entry widget for collection by devoirs package}
 \usage{
-devoirs_text(qID, rows = 4, cols = 50)
+devoirs_text(qID, rows = 4, cols = 50, code = NULL)
 }
 \arguments{
 \item{qID}{unique text string}

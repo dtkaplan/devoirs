@@ -38,7 +38,7 @@ mcq_engine <- function(options) {
   choices <- mc_choices(options$code) # collection of all answer items
 
   tmp <- tags$span(emit_mcq_html(yamlopts, choices)) |> as.character()
-  paste(prompt, tmp |> HTML())
+  paste(prompt, tmp)# |> HTML())
 }
 
 # Set the knitr engine
@@ -186,13 +186,8 @@ emit_mcq_html <- function(options, choices) {
                style = "display: none;",
                w = "skipped", # w is the correct/wrong/skipped field
                checked = ""
-               ),
-    # Hint area: try to keep in line with answers.
-    ifelse(inline, span, div)(tags$small(qID,
-        style = "color: grey;",
-        id = paste0(qID, "-hintarea")),
-        class = "hintarea"
-        )
+               )
+
   )
 
   # Res <- div(Res,
@@ -203,7 +198,17 @@ emit_mcq_html <- function(options, choices) {
   #                         "false")
   # )
 
-  ifelse(inline, tags$span, I)(Res) |> as.character() |> HTML()
+  tagList(
+    # Hint area: try to keep in line with answers.
+    ifelse(inline, span, div)(tags$small(qID,
+                                         style = "color: grey;",
+                                         id = paste0(qID, "-hintarea")),
+                              class = "hintarea"
+    ),
+    htmltools::tags$form(id=paste0(qID, "-form"),
+     ifelse(inline, tags$span, I)(Res)),
+     persist_radio(qID) |> htmltools::HTML()
+  )
 }
 
 condense_text <- function(str, n=10, interpose=" ... ") {
