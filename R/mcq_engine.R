@@ -200,11 +200,15 @@ emit_mcq_html <- function(options, choices) {
 
   tagList(
     # Hint area: try to keep in line with answers.
-    ifelse(inline, span, div)(tags$small(qID,
-                                         style = "color: grey;",
-                                         id = paste0(qID, "-hintarea")),
-                              class = "hintarea"
-    ),
+    tags$small(qID,
+               style = "color: grey;",
+               id = paste0(qID, "-hintarea"),
+               class = "hintarea"),
+    # ifelse(inline, span, div)(tags$small(qID,
+    #                                      style = "color: grey;",
+    #                                      id = paste0(qID, "-hintarea")),
+    #                           class = "hintarea"
+    # ),
     htmltools::tags$form(id=paste0(qID, "-form"),
      ifelse(inline, tags$span, I)(Res)),
      persist_radio(qID) |> htmltools::HTML()
