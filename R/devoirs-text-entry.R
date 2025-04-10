@@ -14,12 +14,15 @@ devoirs_text <- function(qID, rows=4, cols=50, code=NULL) {
     if (is.null(code)) glue::glue("Type here. (ID {qID})")
     else glue::glue("Enter your code from {code} here.")
 
+  class <- if (is.null(code)) "devoirs-text"
+           else "devoirs-text devoirs-computer"
   tagList(
     persist_text(qID) |> htmltools::HTML(),
     tags$textarea(
       id = qID,
       name = qID,
-      class = "devoirs-text",
+      class = class,
+      style = "font-family: monospace, monospace;",
       rows = rows,
       cols = cols,
       placeholder = placeholder
