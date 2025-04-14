@@ -4,8 +4,8 @@
 \alias{answer_style}
 \title{Whether to display answers.}
 \usage{
-answer_style(x)
+answer_style(x, remember = TRUE)
 }
 \description{
-Whether to display answers.
+Call this in the pre-amble to the document
 }

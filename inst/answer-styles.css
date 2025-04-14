@@ -1,0 +1,37 @@
+/* css styles for answers */
+[data-tooltip]:hover::after {
+  display: block;
+  position: absolute;
+  content: attr(data-tooltip);
+  border: 1px solid black;
+  background: #eee;
+  padding: .25em;
+}
+
+.longanswer {
+  color: DimGray;
+  background-color: WhiteSmoke;
+  font-style: italic;
+  border-radius: 5pt;
+  border: dashed;
+}
+
+
+
+.longanswer::before {
+  content: "Answer: ";
+  color: blue;
+}
+
+.shortanswer {
+  background-color: WhiteSmoke;
+  color: DimGray;
+  font-style: italic;
+  border: dashed;
+  border-radius: 5pt;
+}
+
+.shortanswer::before {
+  content: "Ans: ";
+  color: blue;
+}
