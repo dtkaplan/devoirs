@@ -26,7 +26,7 @@ insert_short_answer <- function() {
 
 short_answer_content <- function(content, label) {
   str <- r"(
-[{content}]{{.shortanswer `r answer_style()` data-tooltip="Ans id: {label}"}}})"
+[{content}]{{.shortanswer `r answer_style()` data-tooltip="Ans id: {label}"}})"
   glue::glue(str)
 }
 

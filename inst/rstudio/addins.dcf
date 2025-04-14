@@ -18,3 +18,8 @@ Name: insert answer block
 Description: Create a new block for a long-style answer
 Binding: insert_answer_block
 Interactive: false
+
+Name: Short answer block
+Description: Creates a new span for a short-style answer
+Binding: insert_short_answer
+Interactive: false
