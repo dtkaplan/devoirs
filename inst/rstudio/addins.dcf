@@ -1,0 +1,20 @@
+Name: new exercise file
+Description: Creates a reference to an efile and the efile itself
+Binding: insert_exercise_reference
+Interactive: false
+
+Name: create mcq chunk
+Description: captures content and inserts into mcq chunk
+Binding: insert_mcq
+Interactive: false
+
+
+Name: create label
+Description: creates a label based on the current file name
+Binding: new_item_label
+Interactive: false
+
+Name: insert answer block
+Description: Create a new block for a long-style answer
+Binding: insert_answer_block
+Interactive: false

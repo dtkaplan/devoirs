@@ -11,13 +11,13 @@ new_exercise_listing <-
 -----
 ")
 }
-
+#' Make a label for a new devoirs item
 #' @param ename the root name of a file (e.g.
 #' 'cat-seeks-mouse') or a full path name.
 #' @export
 new_item_label <- function(ename) {
     # in case ename is a full path name
-    shortname <- gsub("\\.[qrQR]md$", "", basename(ename))
+    shortname <- gsub("\\..{1,4}$", "", basename(ename))
     prefix <- if (is_three_part_name(shortname)) {
       gsub("^(.).*-(.).*-(.).*$", "\\1\\2\\3", shortname)
     } else {shortname}
