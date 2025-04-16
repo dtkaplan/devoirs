@@ -4,7 +4,13 @@
 \alias{devoirs_text}
 \title{Create a text-entry widget for collection by devoirs package}
 \usage{
-devoirs_text(qID, rows = 4, cols = 50, code = NULL)
+devoirs_text(
+  qID,
+  rows = 4,
+  cols = 50,
+  code = NULL,
+  str = "Enter your response to {code} here"
+)
 }
 \arguments{
 \item{qID}{unique text string}

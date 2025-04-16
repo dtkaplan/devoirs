@@ -4,9 +4,8 @@
 new_exercise_listing <-
   function(ename = new_exercise_name(), dir = "_exercises/") {
   glue::glue(
-"::: {{#exr-{ename}}}
+"
 {{{{< include {dir}{ename}.qmd >}}}}
-:::
 
 -----
 ")
@@ -28,7 +27,7 @@ new_item_label <- function(ename) {
 
 #' @export
 new_exercise_file <-
-  function(old_contents = "hello",
+  function(old_contents = "",
            ename = new_exercise_name(),
            path = "./",
            dir = "_exercises/") {
@@ -57,12 +56,12 @@ created: \"{date()}\"
 attribution: TBA
 ---
 
+::: {{#exr-{ename}}}
+{paste(old_contents, collapse='\n')}
+:::
+ <!-- end of exr-{ename} -->)"
+)
 
-")
-
-  Contents <- paste0(
-    paste(Contents, collapse="\n"),
-    paste(old_contents, collapse="\n"))
 
   writeLines(Contents, con = new_file_name)
   if (!rstudioapi::isAvailable())

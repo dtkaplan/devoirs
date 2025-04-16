@@ -5,14 +5,14 @@
 #' @param cols number of characters available in each line (50)
 #'
 #' @export
-devoirs_text <- function(qID, rows=4, cols=50, code=NULL) {
+devoirs_text <- function(qID, rows=4, cols=50, code=NULL, str = "Enter your response to {code} here") {
   # keep labels unique
   if (store_devoirs_labels$duplicated(qID)) warning(qID, " is a duplicated label.")
   else store_devoirs_labels$add(qID)
 
   placeholder <-
     if (is.null(code)) glue::glue("Type here. (ID {qID})")
-    else glue::glue("Enter your code from {code} here.")
+    else glue::glue(str)
 
   class <- if (is.null(code)) "devoirs-text"
            else "devoirs-text devoirs-computer"

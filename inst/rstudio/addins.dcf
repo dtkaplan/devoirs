@@ -1,25 +1,29 @@
-Name: new exercise file
-Description: Creates a reference to an efile and the efile itself
+Name: New exercise file
+Description: Creates a reference to an efile and the efile itself from captured content
 Binding: insert_exercise_reference
 Interactive: false
 
-Name: create mcq chunk
+Name: Create mcq chunk
 Description: captures content and inserts into mcq chunk
 Binding: insert_mcq
 Interactive: false
 
+Name: Rich WebR chunk
+Description: creates tabset with webr-chunk, devoirs_text, and scratch calculations.
+Binding: insert_rich_webr_chunk
+Interactive: false
 
-Name: create label
+Name: Label from filename
 Description: creates a label based on the current file name
 Binding: new_item_label
 Interactive: false
 
-Name: insert answer block
-Description: Create a new block for a long-style answer
+Name: Long answer block
+Description: Create a new block from selected text for a long-style answer
 Binding: insert_answer_block
 Interactive: false
 
-Name: Short answer block
+Name: Short answer span
 Description: Creates a new span for a short-style answer
 Binding: insert_short_answer
 Interactive: false
