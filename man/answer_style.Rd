@@ -7,5 +7,7 @@
 answer_style(x, remember = TRUE)
 }
 \description{
-Call this in the pre-amble to the document
+answer_style() gives the currently active answer style
+and allows it to become the default if remember=TRUE
+pop_answer_style() reverts to the previous answer style
 }

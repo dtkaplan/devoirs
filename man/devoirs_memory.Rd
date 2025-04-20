@@ -5,7 +5,7 @@
 \alias{devoirs_memory}
 \title{Store question labels to avoid repeats}
 \format{
-An object of class \code{environment} of length 1.
+An object of class \code{environment} of length 2.
 }
 \usage{
 devoirs_memory

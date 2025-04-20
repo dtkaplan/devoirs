@@ -46,17 +46,38 @@ new_answer_content <- function(content, label) {
 
 devoirs_memory <- new.env()
 devoirs_memory$the_style = "none"
+devoirs_memory$style_stack <- character(0)
 #' Whether to display answers.
 #'
-#' Call this in the pre-amble to the document
+#' answer_style() gives the currently active answer style
+#' and allows it to become the default if remember=TRUE
+#' pop_answer_style() reverts to the previous answer style
 #' @export
 answer_style <-  function(x, remember = TRUE) {
-    if (missing(x)) x <- devoirs_memory$the_style
-    else if (remember) devoirs_memory$the_style <- x
+    if (missing(x)) {
+      n <- length(devoirs_memory$style_stack)
+      x <- if (n > 0) devoirs_memory$style_stack[n]
+      else devoirs_memory$the_style
+    }
+    else if (remember) push_answer_style(x)
 
     paste0("style='display: ", x, ";'")
 }
-# internal
-get_answer_style <- function() devoirs_memory$the_style
+#' @export
+push_answer_style <- function(x) {
+  n <- length(devoirs_memory$style_stack)
+  devoirs_memory$style_stack[n+1] <- x
 
+  NULL # don't print anything
+}
+#' @export
+pop_answer_style <- function(clear = FALSE) {
+  if (clear) devoirs_memory$style_stack <- character(0)
+  else {
+   n <- length(devoirs_memory$style_stack)
+   devoirs_memory$style_stack <- devoirs_memory$style_stack[-n]
+  }
+
+  NULL # don't print anything
+}
 
