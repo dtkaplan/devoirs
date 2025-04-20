@@ -51,7 +51,10 @@ devoirs_memory$the_style = "none"
 #' Call this in the pre-amble to the document
 #' @export
 answer_style <-  function(x, remember = TRUE) {
-    if (remember && !missing(x)) devoirs_memory$the_style <- x
-    return(paste0("style='display: ", devoirs_memory$the_style, ";'"))
-  }
+    if (missing(x)) x <- devoirs_memory$the_style
+    else if (remember) devoirs_memory$the_style <- x
+
+    paste0("style='display: ", x, ";'")
+    }
+
 

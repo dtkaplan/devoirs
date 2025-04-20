@@ -56,6 +56,12 @@ created: \"{date()}\"
 attribution: TBA
 ---
 
+```{{r include=FALSE, eval=!\"devoirs\" %in% (.packages())}}
+# For stand-alone compilation testing
+library(devoirs)
+library(mosaicCalc)
+```
+
 ::: {{#exr-{ename}}}
 {paste(old_contents, collapse='\n')}
 :::
