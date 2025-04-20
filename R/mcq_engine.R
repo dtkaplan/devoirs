@@ -31,7 +31,7 @@ mcq_engine <- function(options) {
   }
 
   # Check to see if answers are turned on via <answer_style()> or via the mcq chunk option
-  if ((get_answer_style() != "none") ||
+  if ((!grepl("none", answer_style())) ||
       (exists("devoirs_show_hints") && devoirs_show_hints)) yamlopts$show_hints <- TRUE
   # keep labels unique
   if (store_devoirs_labels$duplicated(qID)) warning(qID, " is a duplicated label.")

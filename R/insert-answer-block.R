@@ -68,7 +68,7 @@ push_answer_style <- function(x) {
   n <- length(devoirs_memory$style_stack)
   devoirs_memory$style_stack[n+1] <- x
 
-  NULL # don't print anything
+  "" # don't print anything
 }
 #' @export
 pop_answer_style <- function(clear = FALSE) {
@@ -78,6 +78,6 @@ pop_answer_style <- function(clear = FALSE) {
    devoirs_memory$style_stack <- devoirs_memory$style_stack[-n]
   }
 
-  NULL # don't print anything
+  "" # don't print anything
 }
 
