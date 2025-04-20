@@ -29,7 +29,10 @@ mcq_engine <- function(options) {
     warning("Must provide unique 'label: <name>' within each mcq chunk.")
     yamlopts$label <- qID <- paste("no-label", date())
   }
-  if (exists("devoirs_show_hints") && devoirs_show_hints) yamlopts$show_hints <- TRUE
+
+  # Check to see if answers are turned on via <answer_style()> or via the mcq chunk option
+  if ((get_answer_style() != "none") ||
+      (exists("devoirs_show_hints") && devoirs_show_hints)) yamlopts$show_hints <- TRUE
   # keep labels unique
   if (store_devoirs_labels$duplicated(qID)) warning(qID, " is a duplicated label.")
 

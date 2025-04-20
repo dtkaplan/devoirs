@@ -55,6 +55,8 @@ answer_style <-  function(x, remember = TRUE) {
     else if (remember) devoirs_memory$the_style <- x
 
     paste0("style='display: ", x, ";'")
-    }
+}
+# internal
+get_answer_style <- function() devoirs_memory$the_style
 
 
