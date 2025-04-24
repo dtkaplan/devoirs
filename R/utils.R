@@ -70,6 +70,7 @@ set_item_options <- function(s) {
 # the codes that indicate if an MC answer item is correct.
 devoirs_false_code <- function() c(87, 32, 23, 7, 19, 3)
 devoirs_true_code <- function() c(41, 35, 29, 14, 8, 5, 16, 18, 20)
+
 answer_code <- function(word) {
   switch(word,
          correct = sample(devoirs_true_code(), 1),
