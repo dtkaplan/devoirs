@@ -19,24 +19,24 @@ is_three_part_name <- function(name) {
 }
 
 animal_words <- c(
-  "ant", "aspen", "ash", "ape", "bat", "avoid",
+  "ant", "aspen", "ash", "ape", "bat", "avoid", "arm",
   "bear", "bee", "bird", "boy", "beech",
   "buck", "birch", "bobcat", "brother",
   "camel", "cat", "cheetah", "chicken", "calf",
   "cow", "croc", "child", "crow", "calf",
   "deer", "dog", "dolphin", "duck", "doe", "daisy", "dingo",
-  "eagle", "elm", "elephant",
-  "fish", "fly", "fox", "frog", "finch", "falcon", "fir", "fawn",
+  "eagle", "elm", "elephant", "elbow",
+  "fish", "fly", "fox", "frog", "finch", "falcon", "fir", "fawn", "finger",
   "giraffe", "goat", "goldfish", "girl", "gator",
   "hamster",  "horse", "hyena",
   "jellyfish", "jaquar",
-  "kangaroo", "kitten", "kid", "lamb", "lion", "lobster",
-  "maple", "monkey", "mouse", "nephew", "neice", "octopus", "owl", "oak",
+  "kangaroo", "kitten", "kid", "lamb", "lion", "lobster", "leg",
+  "maple", "monkey", "mouse", "nephew", "niece", "octopus", "owl", "oak",
   "panda", "pig", "puppy",  "pine", "pollen", "pony",
   "rabbit", "rat", "rhinosaurus", "reptile",
   "seal", "shark", "sheep", "snail", "snake", "spider", "seahorse",
   "squirrel", "spruce", "seaweed", "sister",
-  "tiger", "turtle", "titmouse",
+  "tiger", "turtle", "titmouse", "toe",
   "walrus", "wolf", "zebra"
 )
 
