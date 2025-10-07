@@ -85,6 +85,7 @@ function devoirs_setup_hintarea() {
   for (i=0; i<answers.length; i++) {
     if (answers[i].getAttribute("show_hints") == "TRUE") {
         answers[i].addEventListener('click', function(e){
+          console.log("inserting hint")
         document.getElementById(e.target.name + "-hintarea").innerText = e.target.getAttribute("hint")
       })
 

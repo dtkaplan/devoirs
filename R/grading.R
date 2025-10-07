@@ -154,7 +154,14 @@ summarize_document <- function(
     For_student <- Submissions |>
       dplyr::filter(email == student)
     if (nrow(For_student) == 0) next # Don't process for this student
-    convert_to_df <- function(x) jsonlite::parse_json(x, simplifyVector = TRUE)
+    convert_to_df <- function(x) {
+      res <- try(jsonlite::parse_json(x, simplifyVector = TRUE))
+      if (inherits(res, "try-error")) {
+        warning(glue::glue("Malformed submission for {For_student$email} on {For_student$Timestamp}."))
+        NULL
+      }
+      else res
+    }
     Subs <- lapply(For_student$contents, FUN = convert_to_df)
 
     # Grab the MC component

@@ -9,7 +9,8 @@ devoirsTF(
   id = NULL,
   wrong.hint = "",
   right.hint = "",
-  leed = "True or False"
+  leed = "",
+  format = "True or False"
 )
 }
 \arguments{
@@ -23,7 +24,9 @@ wrong response is determined by the `correct` argument}
 
 \item{right.hint}{The hint for a correct response.}
 
-\item{leed}{String like "yes or no?" Default: "True or False"}
+\item{leed}{String to preceed the radio buttons}
+
+\item{format}{String like "yes or no?" Default: "True or False"}
 }
 \description{
 A compact option for authors writing lots of true-or-false questions.
