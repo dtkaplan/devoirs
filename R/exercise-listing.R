@@ -37,18 +37,16 @@ new_exercise_file <-
   # create the directory if it doesn't exist
   suppressWarnings(dir.create(whole_path))
   # find an unused exercise file name
-  new_file_name <- paste0(whole_path, ename, ".qmd")
+
   count <- 0
-  while (count < 10 && file.exists(new_file_name)) {
+  while (count < 100 && file.exists(new_file_name)) {
     ename <- new_exercise_name()
     count = count + 1
   }
-  if (count >= 10) stop("Can't find a random name for the new file. ")
+  if (count >= 100) stop("Can't find a random name for the new file. ")
 
-  if (count > 0) {
-    # update the whole path/file name.
-    new_file_name <- paste0(wholepath, ename, ".qmd")
-  }
+  new_file_name <- paste0(whole_path, ename, ".qmd")
+
   Contents <- glue::glue(
 "---
 id: \"{ename}\"
@@ -62,7 +60,9 @@ library(devoirs)
 library(mosaicCalc)
 ```
 
-::: {{#exr-{ename}}}
+{{< include _status/sketch_DTK.qmd >}}
+
+::: {{#exercise-{ename}}}
 {paste(old_contents, collapse='\n')}
 :::
  <!-- end of exr-{ename} -->"

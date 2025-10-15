@@ -67,19 +67,19 @@ verb_words <- c(
 )
 
 everyday_nouns <- c(
-  "bed", "blanket", "boat", "book", "bottle", "bowl", "bulb",
+  "bed", "blanket", "boat", "book", "bottle", "bowl", "bulb", "bolt", "blouse",
   "candy", "canoe", "car", "chair", "clock", "closet", "coat", "cotton",
   "dish", "door", "drawer", "dress",
   "fork", "futon", "fridge", "glasses", "gloves",
-  "hamper",
+  "hamper", "hat",
   "jacket", "kayak", "kitchen", "knife", "knob",
   "lamp", "linen", "laundry",
   "magnet", "map", "mug", "mattress",
   "oven", "painting", "pantry",
-  "pants", "pen", "pencil", "piano", "plant", "plate", "pot", "pan",
-  "radio", "ring", "roof", "room", "rug",
-  "saucer", "saw", "scarf", "sheet", "ship", "shirt", "sofa", "screen",
-  "shoe", "socks", "sofa", "spoon", "stove", "suitcase",
+  "pants", "pen", "pencil", "piano", "plant", "plate", "pot", "pan", "plyer",
+  "radio", "ring", "roof", "room", "rug", "stair",
+  "saucer", "saw", "scarf", "sheet", "shelf", "ship", "shirt", "sofa", "screen",
+  "shoe", "socks",  "spoon", "stove", "suitcase",
   "table", "tv", "teacup", "vase", "window")
 
 
