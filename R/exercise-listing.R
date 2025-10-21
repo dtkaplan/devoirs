@@ -34,6 +34,8 @@ new_exercise_file <-
   # Construct the full path from the source file to the
   # directory that holds the exercises
   whole_path <- file.path(path, dir)
+  # Construct a first try at a new name
+  new_file_name <- paste0(whole_path, new_exercise_name(), ".qmd")
   # create the directory if it doesn't exist
   suppressWarnings(dir.create(whole_path))
   # find an unused exercise file name
