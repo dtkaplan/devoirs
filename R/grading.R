@@ -13,16 +13,16 @@ is_valid_directory <- function(home = ".") {
 #' Get the new submissions from the repo
 #' @rdname grading
 #' @export
-get_new_submissions <- function(home = ".") {
+get_raw_submissions <- function(home = ".") {
   params <- get_course_params(home)
-  tmp <- readr::read_csv(params$submissions_file)
-  names(tmp)[c(2,3)] <- c("tentative", "contents")
+  tmp <- readr::read_csv(params$submissions_file, show_col_types = FALSE)
+  names(tmp) <- c("timestamp", "tentative", "contents")
   # resolve the tentative submitter address to take care of aliases
   tmp <- tmp |> dplyr::left_join(params$aliases)
 
 
   tmp <- tmp |>
-    dplyr::mutate(Timestamp = convert_time_helper(Timestamp)) |>
+    dplyr::mutate(timestamp = convert_time_helper(timestamp)) |>
     dplyr::filter(submission_valid_contents(contents)) # purge ill-formed submissions
   if (nrow(tmp) == 0) {
     return(tibble::tibble())
@@ -67,11 +67,11 @@ check_submission_names <- function(home = ".", since = "2000-1-1 00:00:01 UTC") 
 #' @export
 get_historic_data <- function(home = ".", since = "2000-1-1 00:00:01 UTC") {
   since <- convert_time_helper(since)
-  store_file_name <- paste0(home, "/Permanent_store.RDS")
-  if (file.access(store_file_name) == 0) {
-    tmp <- readRDS(store_file_name) |>
-      dplyr::mutate(Timestamp = convert_time_helper(Timestamp))
-    return(tmp |>  dplyr::filter(Timestamp > since))
+  perm_file_name <- paste0(home, "/Permanent_store.RDS")
+  if (file.exists(perm_file_name)) {
+    tmp <- readRDS(perm_file_name) |>
+      dplyr::mutate(timestamp = convert_time_helper(timestamp))
+    return(tmp |>  dplyr::filter(timestamp > since))
   } else {
     warning(glue::glue("No <Permanent_store.RDS> file in directory <{home}>."))
     return(tibble::tibble())
@@ -89,7 +89,7 @@ update_submissions <- function(home = ".") {
     warning(home, " is not a valid grading directory.")
     return(tibble::tibble()) # Empty data frame
   }
-  new_submissions <- get_new_submissions(home)
+  raw_submissions <- get_raw_submissions(home)
   ## Also check names, etc.
 
   # Check for access to Permanent_store.RDS and, if it exists, read it.
@@ -97,8 +97,7 @@ update_submissions <- function(home = ".") {
   # Get rid of exact duplicates that are already stored
   # in <historic_data>
   if (nrow(historic_data) > 0) { # combine the old with the new
-    # there is no historic data to be found!
-    new_submissions <- dplyr::anti_join(new_submissions, historic_data)
+    new_submissions <- dplyr::anti_join(raw_submissions, historic_data)
   }
   historic_data <- dplyr::bind_rows(historic_data, new_submissions)
   saveRDS(historic_data, file = paste0(home, "/Permanent_store.RDS"))
@@ -148,8 +147,8 @@ summarize_document <- function(
   # within the since-to-last time frame
   Submissions <- Submissions |>
     dplyr::filter(grepl(doc_name, docid),
-                  since <= Timestamp,
-                  until >= Timestamp)
+                  since <= timestamp,
+                  until >= timestamp)
   for (student in students) {
     For_student <- Submissions |>
       dplyr::filter(email == student)
@@ -157,7 +156,7 @@ summarize_document <- function(
     convert_to_df <- function(x) {
       res <- try(jsonlite::parse_json(x, simplifyVector = TRUE))
       if (inherits(res, "try-error")) {
-        warning(glue::glue("Malformed submission for {For_student$email} on {For_student$Timestamp}."))
+        warning(glue::glue("Malformed submission for {For_student$email} on {For_student$timestamp}."))
         NULL
       }
       else res
@@ -165,11 +164,11 @@ summarize_document <- function(
     Subs <- lapply(For_student$contents, FUN = convert_to_df)
 
     # Grab the MC component
-    MC <- collect_component(Subs, "MC", For_student$Timestamp)
+    MC <- collect_component(Subs, "MC", For_student$timestamp)
 
 
     MC$email <- student # add the student's ID
-    Essays <- collect_component(Subs, "Essays", For_student$Timestamp)
+    Essays <- collect_component(Subs, "Essays", For_student$timestamp)
     if (nrow(Essays) > 0)  Essays$email <- student
 
     # Handle differently, since each submission$R is a character vector

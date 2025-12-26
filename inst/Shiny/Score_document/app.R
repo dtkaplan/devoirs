@@ -56,7 +56,10 @@ ui <- page_navbar(
 
 server <- function(input, output, session) {
 
-  STATE <- reactiveValues() # place to store current document summary, submissions, etc.
+  Items <- reactiveVal() # place to store current document summary, submissions, etc.
+  Scores <- reactiveVal()
+
+  observe
 
   homedir <- reactive({getShinyOption("cwd", "~/UATX/GRADING/Calc25") })
   # For debugging, to run app from RStudio editor.
@@ -109,8 +112,8 @@ server <- function(input, output, session) {
       # Construct a summary
       dplyr::summarize(
         count = dplyr::n(),
-        earliest = min(Timestamp),
-        latest = max(Timestamp),
+        earliest = min(timestamp),
+        latest = max(timestamp),
         .by = docid) |>
       dplyr::mutate(docid = gsub("\\.rmarkdown$", "", docid)) |>
       dplyr::arrange(desc(docid))
