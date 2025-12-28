@@ -62,8 +62,6 @@ library(devoirs)
 library(mosaicCalc)
 ```
 
-{{< include _status/sketch_DTK.qmd >}}
-
 ::: {{#exr-{ename}}}
 {paste(old_contents, collapse='\n')}
 :::
