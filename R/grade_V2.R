@@ -154,30 +154,44 @@ read_score_keeper <- function(home = ".") {
   store_file_name <- paste0(home, "/Scores.RDS")
   if (file.exists(store_file_name)) {
     tmp <- readRDS(store_file_name) |>
-      dplyr::mutate(time = convert_time_helper(time))
+      dplyr::mutate(timestamp = convert_time_helper(timestamp))
   } else {
     message(glue::glue("No <Scores.RDS> file in directory <{home}>. Creating ..."))
-    tmp <- NULL
+    tmp <- tibble::tibble(
+      student="bogus", docid="bogus", itemid="bogus", score=99, timestamp=Sys.time()
+    ) |> head(0) # with no rows
   }
   # read any new onces since the score keeper was last read.
-  New_ones <- readTmpScores(home) |>
-    dplyr::mutate(time = convert_time_helper(time))
-  All <- dplyr::bind_rows(tmp, New_ones)
-  if (nrow(All) > 0) saveRDS(All, file = store_file_name)
-
+  New_ones <- readTmpScores(home)
+  if (nrow(New_ones) > 0) {
+    New_ones <- New_ones |> dplyr::mutate(timestamp = convert_time_helper(time))
+    All <- dplyr::bind_rows(tmp, New_ones)
+  } else {
+    All <- tmp
+  }
+  if (nrow(New_ones) > 0) {
+    # do some wrangling to get only the latest for each student, item, doc
+    # All <- All |>
+    #   dplyr::arrange(desc(timestamp)) |>
+    #   dplyr::filter(dplyr::row_number() == 1, .by = c(student, docid, itemid))
+    saveRDS(All, file = store_file_name)
+  }
   All
 }
 
 #' add a new score to the temporary file
-add_new_score <- function(hash, score, home = ".") {
+add_new_score <- function(score, docid, student, itemid, home = ".") {
   if (!is_valid_directory(home)) stop(paste(home, "is not a valid grading directory."))
 
   store_file_name <- paste0(home, "/TmpScores.CSV")
-  if (file.exists(store_file_name))
-    cat("hash, score, time\n", file = store_file_name)
+  if (!file.exists(store_file_name))
+    cat("student, docid, itemid, score, timestamp\n", file = store_file_name)
 
-  string <- paste0(paste(hash, score, Sys.time(), sep = ","), "\n")
+  string <- paste0(paste(student, docid, itemid, score, Sys.time(), sep = ","), "\n")
   cat(string, file=store_file_name, append = TRUE)
+
+  tibble::tibble(
+    student=student, docid=docid, itemid=itemid, score=score, timestamp=Sys.time())
 }
 
 #' @export
@@ -188,12 +202,14 @@ readTmpScores <- function(home = ".", empty = TRUE) {
   if (file.exists(store_file_name)) {
     Res <- read.csv(store_file_name)
   } else {
-    Res <- NULL
+    Res <- tibble::tibble(student = "a", docid="b", itemid = "c",
+                          score = NaN, timestamp = Sys.time()) |>
+      head(0)
   }
 
   # Empty the file
   if (empty)
-    cat("hash, score, time\n", file = store_file_name)
+    cat("student, docid, itemid, score, timestamp\n", file = store_file_name)
 
   return(Res)
 }

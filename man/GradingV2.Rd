@@ -12,7 +12,7 @@ JSON_to_ITEMS(JSONentries)
 \arguments{
 \item{home}{the name of the home directory, usually "."}
 
-\item{JSONentries}{the raw json as provided by get_rawnew_submissions()
+\item{JSONentries}{the raw json as provided by get_raw_submissions()
 or as recorded in the}
 }
 \description{

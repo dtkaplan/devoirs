@@ -4,7 +4,7 @@
 \alias{add_new_score}
 \title{add a new score to the temporary file}
 \usage{
-add_new_score(hash, score, home = ".")
+add_new_score(score, docid, student, itemid, home = ".")
 }
 \description{
 add a new score to the temporary file

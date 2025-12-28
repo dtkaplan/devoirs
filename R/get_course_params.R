@@ -24,8 +24,19 @@ get_course_params <- function(home = ".", silent = FALSE) {
       paste(stopM, glue::glue("No <{param_name}> parameter given.\n"))
     if (nchar(stopM) > 0) stop(stopM)
 
-    params$aliases <- create_aliases(params$class_list)
+    TMP <- student_properties(params$class_list)
+    in_brackets <- grepl("^\\[", TMP$tentative)
+
+    params$aliases <- TMP[!in_brackets,]
+    # sections1 will have an entry only when the section is listed
+    # explicitly in brackets
+    sections1 <- TMP[in_brackets,]
+    names(sections1)[1] <- "section"
+    # a vector, but not sure why I did it that way.
     params$class_list <- gsub("^([^ ]*).*", "\\1", params$class_list)
+    Sections <- tibble::tibble(email = params$class_list)
+    params$sections <- dplyr::left_join(Sections, sections1, by = "email") |>
+      dplyr::mutate(section = ifelse(is.na(section), "[**unassigned**]", section))
 
     return(params)
   } else {
@@ -41,8 +52,12 @@ get_course_params <- function(home = ".", silent = FALSE) {
 one_student <- function(addresses) {
     tibble::tibble(tentative = addresses, email=addresses[1])
 }
-create_aliases <- function(class_list) {
+student_properties <- function(class_list) {
   separated <- strsplit(class_list, " {1,}")
 
+  # Create a data frame with the email address as one column
+  # and any aliases or section ids as the other column.
+  # May have multiple rows for each email address, one for each
+  # alias or other identifier.
   lapply(separated, FUN = one_student) |> dplyr::bind_rows()
 }

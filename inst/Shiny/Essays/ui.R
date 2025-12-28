@@ -5,17 +5,28 @@ library(bslib)
 library(DT)
 
 ui <- page_navbar(
-  nav_panel("[Select document]",
-            actionButton("do_update", "Update database"),
-            selectInput("document", "Select Document", choices = "NONE"),
-            textOutput("nsubmissions", inline=FALSE),
-            selectInput("item", "Select Item", choices = "NONE")
-  ),
+  title = "{devoirs} grading",
   nav_panel("[Essays]",
-            checkboxInput("all_students", label="All students?", value = TRUE),
+            selectizeInput("sections", "Select class section", choices = LETTERS, multiple = TRUE),
             selectizeInput("student", "Select student", choices = "", multiple = TRUE),
-            actionButton("prev_student", "Previous"), actionButton("next_student", "Next"),
-            textOutput("current_student"),
-            tableOutput("current_essay")
+            selectInput("document", "Select Document", choices = c()),
+            selectInput("item", "Select Item", choice = c()),
+            layout_columns(
+              textOutput("current_student"),
+              actionButton(inputId ="prev_student", label = icon("arrow-left")),
+                          # style = "width: 50px; padding: 10px; font-size: 150%;"),
+              actionButton(inputId ="next_student", label = icon("arrow-right")),
+                          # style = "width: 50px; padding: 10px; font-size: 150%;"),
+              col_widths = c(3, 1, 1)
+            ),
+            br(),
+            radioButtons("item_score", "Score",
+                         choiceValues = c(99, 0:6),
+                         choiceNames = c("none", 0:6), inline = TRUE,
+                         selected = 99),
+            htmlOutput("essay")
+  ),
+  nav_panel("[Close & Update]",
+            actionButton("do_update", "Close App"),
   )
 )
