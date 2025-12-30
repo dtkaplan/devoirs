@@ -67,20 +67,20 @@ check_submission_names <- function(home = ".", since = "2000-1-1 00:00:01 UTC") 
 #' @export
 get_historic_data <- function(home = ".", since = "2000-1-1 00:00:01 UTC") {
   since <- convert_time_helper(since)
-  perm_file_name <- paste0(home, "/Permanent_store.RDS")
+  perm_file_name <- paste0(home, "/JSON_STORE.RDS")
   if (file.exists(perm_file_name)) {
     tmp <- readRDS(perm_file_name) |>
       dplyr::mutate(timestamp = convert_time_helper(timestamp))
     return(tmp |>  dplyr::filter(timestamp > since))
   } else {
-    warning(glue::glue("No <Permanent_store.RDS> file in directory <{home}>."))
+    warning(glue::glue("No <JSON_STORE.RDS> file in directory <{home}>."))
     return(tibble::tibble())
   }
 }
 
 #'
 #' Read the raw submissions data from the repo submissions file and add it
-#' to the Permanent_store.RDS file.
+#' to the JSON_STORE.RDS file.
 #' @param new_only If TRUE, just return the data newly read from the repo.
 #' @rdname grading
 #' @export
@@ -92,7 +92,7 @@ update_submissions <- function(home = ".") {
   raw_submissions <- get_raw_submissions(home)
   ## Also check names, etc.
 
-  # Check for access to Permanent_store.RDS and, if it exists, read it.
+  # Check for access to JSON_STORE.RDS and, if it exists, read it.
   historic_data <- get_historic_data(home)
   # Get rid of exact duplicates that are already stored
   # in <historic_data>
@@ -100,7 +100,7 @@ update_submissions <- function(home = ".") {
     new_submissions <- dplyr::anti_join(raw_submissions, historic_data)
   }
   historic_data <- dplyr::bind_rows(historic_data, new_submissions)
-  saveRDS(historic_data, file = paste0(home, "/Permanent_store.RDS"))
+  saveRDS(historic_data, file = paste0(home, "/JSON_STORE.RDS"))
 
   historic_data
 }

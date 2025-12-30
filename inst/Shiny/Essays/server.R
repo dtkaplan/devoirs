@@ -37,7 +37,7 @@ function(input, output, session) {
     PARAMS(tmp)
     # fill in the sections choices
     updateSelectizeInput(session, "sections",
-                         choices = c("All", PARAMS()$sections$section),
+                         choices = c("All", sort(PARAMS()$sections$section)),
                          selected = "All")
     # Make a list of all students involved, registered or not
     tmp <- ITEMS() |> # Comprehensive: who submitted an item

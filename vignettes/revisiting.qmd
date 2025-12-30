@@ -15,10 +15,10 @@ setwd("~kaplan/UATX/GRADING/QR-A-W26/")
 Submissions <- update_submissions()
 ```
 
-or read them from the `Permanent_store.RDS` file
+or read them from the `JSON_STORE.RDS` file
 
 ```r
-Submissions <- readRDS("Permanent_store.RDS")  
+Submissions <- readRDS("JSON_STORE.RDS")  
 ```
 
 3. Parse the submissions into a data frame with one row for each question item.

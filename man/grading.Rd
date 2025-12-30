@@ -23,5 +23,5 @@ Get the new submissions from the repo
 Get the historic data
 
 Read the raw submissions data from the repo submissions file and add it
-to the Permanent_store.RDS file.
+to the JSON_STORE.RDS file.
 }

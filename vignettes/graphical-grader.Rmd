@@ -80,7 +80,7 @@ To construct the link to the Google Forms spreadsheet file, go from the Google F
 
 When you start using the grading directory, particularly when you call `update_submissions()`, another file will be created:
 
-- `Permanent_store.RDS` a file established and maintained by `{devoirs}` to hold all of the student submissions that have been downloaded from the collection site. You do not need to work with this file directly. 
+- `JSON_STORE.RDS` a file established and maintained by `{devoirs}` to hold all of the student submissions that have been downloaded from the collection site. You do not need to work with this file directly. 
 
 ## Opening the graphical grader
 

@@ -10,19 +10,19 @@ update_items <- function(home = ".") {
   # Make sure we are in a grading directory
   if (!is_valid_directory(home)) stop(paste(home, "is not a grading directory."))
 
-  # ensure that there is an All_items.RDS file
-  item_store_name <- paste(home, "All_items.RDS")
+  # ensure that there is an JSON_STORE.RDS file
+  item_store_name <- paste(home, "JSON_STORE.RDS")
   new_flag <- exists(item_store_name)
 
   # read submissions collection site
-  # also updates the Permanent_store.RDS file
+  # also updates the JSON_STORE.RDS file
   new_submissions <- update_JSON(home, only_new = new_flag)
   if (nrow(new_submissions) == 0) {
     message("No new submissions")
     return(NULL)
   }
   new_items <- JSON_to_ITEMS(new_submissions)
-  previous_items <- get_old_items(home) # get from All_items.RDS
+  previous_items <- get_old_items(home) # get from JSON_STORE.RDS
   if (nrow(previous_items) == 0) {
     most_recent <- "2000-1-1 00:00:01 UTC"
   } else {
@@ -36,18 +36,18 @@ update_items <- function(home = ".") {
 
   # save both new and old
   All <- dplyr::bind_rows(previous_items, new_items)
-  saveRDS(All, file = paste0(home, "/All_items.RDS"))
+  saveRDS(All, file = paste0(home, "/JSON_STORE.RDS"))
 
   return(new_items)
 }
 
-# Old items are those already in All_items.RDS
+# Old items are those already in JSON_STORE.RDS
 get_old_items <- function(home = ".") {
-  store_file_name <- paste0(home, "/All_items.RDS")
+  store_file_name <- paste0(home, "/JSON_STORE.RDS")
   if (file.exists(store_file_name)) {
     tmp <- readRDS(store_file_name)
   } else {
-    warning(glue::glue("No <All_items.RDS> file in directory <{home}>."))
+    warning(glue::glue("No <JSON_STORE.RDS> file in directory <{home}>."))
     return(tibble::tibble())
   }
 }
@@ -64,7 +64,7 @@ update_JSON <- function(home = ".", only_new = TRUE) {
   raw_submissions <- get_raw_submissions(home)
   ## Also check names, etc.
 
-  # Check for access to Permanent_store.RDS and, if it exists, read it.
+  # Check for access to JSON_STORE.RDS and, if it exists, read it.
   historic_data <- get_historic_data(home)
 
   # return early if no raw submissions
@@ -85,7 +85,7 @@ update_JSON <- function(home = ".", only_new = TRUE) {
   # Otherwise, no need for an update.
   if (nrow(new_submissions) > 0) {
     historic_data <- dplyr::bind_rows(historic_data, new_submissions)
-    saveRDS(historic_data, file = paste0(home, "/Permanent_store.RDS"))
+    saveRDS(historic_data, file = paste0(home, "/JSON_STORE.RDS"))
   }
 
   if (only_new) new_submissions
