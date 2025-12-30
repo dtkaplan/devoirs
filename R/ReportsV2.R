@@ -10,7 +10,7 @@
 #'
 #'
 valid_All_items <- function(home = ".") {
-  res <- get_old_items(home)
+  res <- get_old_ITEMS(home)
   if (nrow(res) == 0) stop("Must run update_items() first.")
   else res
 }

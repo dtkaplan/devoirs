@@ -10,8 +10,8 @@ update_items <- function(home = ".") {
   # Make sure we are in a grading directory
   if (!is_valid_directory(home)) stop(paste(home, "is not a grading directory."))
 
-  # ensure that there is an JSON_STORE.RDS file
-  item_store_name <- paste(home, "JSON_STORE.RDS")
+  # ensure that there is an ITEM_STORE.RDS file
+  item_store_name <- paste(home, "ITEM_STORE.RDS")
   new_flag <- exists(item_store_name)
 
   # read submissions collection site
@@ -22,7 +22,7 @@ update_items <- function(home = ".") {
     return(NULL)
   }
   new_items <- JSON_to_ITEMS(new_submissions)
-  previous_items <- get_old_items(home) # get from JSON_STORE.RDS
+  previous_items <- get_old_ITEMS(home) # get from ITEM_STORE.RDS
   if (nrow(previous_items) == 0) {
     most_recent <- "2000-1-1 00:00:01 UTC"
   } else {
@@ -36,24 +36,26 @@ update_items <- function(home = ".") {
 
   # save both new and old
   All <- dplyr::bind_rows(previous_items, new_items)
-  saveRDS(All, file = paste0(home, "/JSON_STORE.RDS"))
+  saveRDS(All, file = paste0(home, "/ITEM_STORE.RDS"))
 
   return(new_items)
 }
 
-# Old items are those already in JSON_STORE.RDS
-get_old_items <- function(home = ".") {
-  store_file_name <- paste0(home, "/JSON_STORE.RDS")
+# Old items are those already in ITEM_STORE.RDS
+get_old_ITEMS <- function(home = ".") {
+  store_file_name <- paste0(home, "/ITEM_STORE.RDS")
   if (file.exists(store_file_name)) {
     tmp <- readRDS(store_file_name)
   } else {
-    warning(glue::glue("No <JSON_STORE.RDS> file in directory <{home}>."))
-    return(tibble::tibble())
+    warning(glue::glue("No <ITEM_STORE.RDS> file in directory <{home}>. Creating."))
+    file_path <- system.file("TEMPLATES", "ITEM_STORE.RDS", package = "devoirs")
+    tmp <- readRDS(file_path)
+    return(tmp |> head(0))
   }
 }
 
 
-#' Returns just the new submissions
+#' Returns just the *new* JSON submissions
 #' You can get the full set from get_historic_data()
 #' export
 update_JSON <- function(home = ".", only_new = TRUE) {
@@ -108,8 +110,7 @@ JSON_to_ITEMS <- function(JSONentries) {
 
   Res <- dplyr::bind_rows(Res) |>
     dplyr::filter(!grepl("null$", itemid)) |>
-    dplyr::mutate(link = paste0(docid, ".html#", itemid, ifelse(is.na(correct), "", "-form")),
-                  hash = hashes(docid)
+    dplyr::mutate(link = paste0(docid, ".html#", itemid, ifelse(is.na(correct), "", "-form"))
                  )
 
 
@@ -214,17 +215,25 @@ readTmpScores <- function(home = ".", empty = TRUE) {
   return(Res)
 }
 
+#' @export
 ViewEssays <- function(dir_name = NULL) {
   # Get from arguments if they give the name of the directory
   if (is.null(dir_name)) dir_name <- getwd()
 
   if (!is_valid_directory(dir_name)) {
+    message("Navigate to your grading directory.")
     while(TRUE) {
       dir_name <- rstudioapi::selectDirectory(caption="Select the grading directory.")
       if (is_valid_directory(dir_name)) break
       else warning(glue::glue("{dir_name} is not a {{devoirs}} grading directory"))
     }
   }
+
+  update_flag <- readline(prompt = "Do you want to update, bringing new submissions from the collection site? [yes or no]")
+  if (grepl("y", update_flag)) {
+    update_items(home = dir_name)
+  }
+
 
   shiny::shinyOptions(cwd = dir_name)
   shiny::runApp(system.file("Shiny/Essays", package = "devoirs"),

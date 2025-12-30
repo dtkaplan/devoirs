@@ -1,5 +1,7 @@
 # Shiny app to coordinate scoring a document
 
+# This has been REPLACED with the "Essays" shiny app.
+
 library(shiny)
 library(devoirs)
 library(rhandsontable)
@@ -125,7 +127,7 @@ server <- function(input, output, session) {
     {
       # get new ones only if checked
       if (valid_dir() && input$update_submissions) {
-        STATE$submissions <- update_submissions(homedir())
+        STATE$submissions <- update_JSON_submissions(homedir())
       }
     }
   )

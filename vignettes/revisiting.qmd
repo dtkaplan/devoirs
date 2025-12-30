@@ -21,72 +21,11 @@ or read them from the `JSON_STORE.RDS` file
 Submissions <- readRDS("JSON_STORE.RDS")  
 ```
 
-3. Parse the submissions into a data frame with one row for each question item.
-
-- contents contains the essay or the multiple-choice item selected (as a number)
-
-
-```{r}
-parse_submissions <- function(Submissions, 
-                              since = "2000-1-1 00:00:01 UTC", 
-                              until = "3000-1-1 00:00:01 UTC") {
-  since <- devoirs:::convert_time_helper(since)
-  until <- devoirs:::convert_time_helper(until)
-  # Just the ones in the specified document,
-  # within the since-to-last time frame
-  Raw <- Submissions |>
-    dplyr::filter(since <= timestamp,
-                  until >= timestamp)
-  # Allow more filtering here?
-
-  
-  parse_json <- function(contents) {
-      res <- try(jsonlite::parse_json(contents, simplifyVector = TRUE))
-      if (inherits(res, "try-error")) {
-        data.frame(parsed = FALSE)
-      }
-      else c(res, parsed = TRUE)
-  }
-  handle_entry <- function(raw) {
-    entries <- parse_json(raw$contents)
-    MC <- if (length(entries$MC) == 0) {NULL}
-    else {
-      entries$MC |> dplyr::mutate(
-        contents = stringr::str_match(itemid, "-([0-9]*)$")[,2],
-        itemid = gsub("-[0-9]*$", "", itemid),
-        correct = w %in% devoirs:::devoirs_true_code()) |> 
-        dplyr::select(-w)
-    } 
-    
-    Items <- dplyr::bind_rows(entries$Essays, MC)
-    Items$timestamp = raw$timestamp
-    Items$student = raw$tentative
-    Items$docid = raw$docid
-    
-    Items
-  }
-  
-  
-  Res <- as.list(1:nrow(Raw))
-  for (k in 1:nrow(Raw)) {
-    Res[[k]] <- handle_entry(Raw[k,])
-  }
-  
-  Res <- dplyr::bind_rows(Res) |>
-    dplyr::filter(!grepl("null$", itemid)) |>
-    dplyr::mutate(link = paste0(docid, ".html#", itemid, ifelse(is.na(correct), "", "-form")))
-  
-  
-  Res
-}
-```
-
-
-4. 
-Report on MC answers
+3. Report on MC answers
 
 ```{r}
 MC_review <- function(Items) {
+  # items with a non-na correct field are multiple choice.
   Items <- Items |> dplyr::filter(!is.na(correct))
   Correct <- Items |> dplyr::select(itemid, contents, correct) |> 
     dplyr::filter(correct) |> unique() |>

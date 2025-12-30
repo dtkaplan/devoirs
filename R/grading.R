@@ -11,6 +11,10 @@ is_valid_directory <- function(home = ".") {
 }
 
 #' Get the new submissions from the repo
+#' return them as a data frame for later processing which will
+#' 1) Append them to the JSON_STORE.RDS file
+#' 2) Convert them to ITEMS (that is, with the JSON parsed)
+#'    and append them to the ITEM_STORE.RDS file
 #' @rdname grading
 #' @export
 get_raw_submissions <- function(home = ".") {
@@ -20,6 +24,7 @@ get_raw_submissions <- function(home = ".") {
   # resolve the tentative submitter address to take care of aliases
   tmp <- tmp |> dplyr::left_join(params$aliases)
 
+  # WHERE AM I DOING SOMETHING WITH THE ALIASES????
 
   tmp <- tmp |>
     dplyr::mutate(timestamp = convert_time_helper(timestamp)) |>
@@ -73,8 +78,11 @@ get_historic_data <- function(home = ".", since = "2000-1-1 00:00:01 UTC") {
       dplyr::mutate(timestamp = convert_time_helper(timestamp))
     return(tmp |>  dplyr::filter(timestamp > since))
   } else {
-    warning(glue::glue("No <JSON_STORE.RDS> file in directory <{home}>."))
-    return(tibble::tibble())
+    warning(glue::glue("No <JSON_STORE.RDS> file in directory <{home}>. Creating it."))
+    file_path <- system.file("TEMPLATES", "JSON_STORE.RDS", package = "devoirs")
+    tmp <- readRDS(file_path)
+    # return an empty data frame in the right format
+    return(tmp |> head(0))
   }
 }
 
@@ -84,7 +92,7 @@ get_historic_data <- function(home = ".", since = "2000-1-1 00:00:01 UTC") {
 #' @param new_only If TRUE, just return the data newly read from the repo.
 #' @rdname grading
 #' @export
-update_submissions <- function(home = ".") {
+update_JSON_submissions <- function(home = ".") {
   if (!is_valid_directory(home)) {
     warning(home, " is not a valid grading directory.")
     return(tibble::tibble()) # Empty data frame

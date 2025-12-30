@@ -23,14 +23,25 @@ function(input, output, session) {
   # Start up---read in the items and scores
   initial_read <- reactive({
     if (!is_valid_directory(HOME())) stop("Not in a {devoirs} grading directory.")
-    items <- devoirs:::get_old_items(HOME())
+    items <- devoirs:::get_old_ITEMS(HOME())
     scores <- devoirs:::read_score_keeper(HOME())
     # just get the most recent scores
     scores <- scores |>
       dplyr::arrange(desc(timestamp)) |>
       dplyr::filter(dplyr::row_number() == 1, .by = c(student, docid, itemid))
-    if (nrow(items) == 0)
-      stop("Cannot read items")
+    if (nrow(items) == 0) {
+      message("No items found in stores. Trying to update from collection site ....")
+      from_collection <- devoirs:::update_items(HOME())
+      if (nrow(from_collection) == 0) {
+        message("There are no items yet at the collection site.\nRe-try when some items have been submitted.\n")
+        stopApp()
+      } else {
+        message(paste0("succeeded with ", nrow(from_collection),  "items.\n Proceeding\n"))
+        # start off with the ones that are already there.
+        items <- from_collection
+      }
+
+    }
     ITEMS(items) # place into the reactive store
     SCORES(scores) # place into the reactive store
     tmp <- get_course_params(HOME())
@@ -55,6 +66,9 @@ function(input, output, session) {
                 stopApp()},
                ignoreInit = TRUE)
 
+  observeEvent(input$just_close,
+               { stopApp() },
+               ignoreInit = TRUE)
   # Doesn't change during run of app, just for initialization
   get_all_essays <- reactive({
     ITEMS() |>

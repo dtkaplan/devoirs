@@ -3,14 +3,18 @@
 \name{get_raw_submissions}
 \alias{get_raw_submissions}
 \alias{get_historic_data}
-\alias{update_submissions}
-\title{Get the new submissions from the repo}
+\alias{update_JSON_submissions}
+\title{Get the new submissions from the repo
+return them as a data frame for later processing which will
+1) Append them to the JSON_STORE.RDS file
+2) Convert them to ITEMS (that is, with the JSON parsed)
+   and append them to the ITEM_STORE.RDS file}
 \usage{
 get_raw_submissions(home = ".")
 
 get_historic_data(home = ".", since = "2000-1-1 00:00:01 UTC")
 
-update_submissions(home = ".")
+update_JSON_submissions(home = ".")
 }
 \arguments{
 \item{since}{date for earliest submission to include. Format: "2024-11-18 00:00:01 UTC"}
@@ -19,6 +23,10 @@ update_submissions(home = ".")
 }
 \description{
 Get the new submissions from the repo
+return them as a data frame for later processing which will
+1) Append them to the JSON_STORE.RDS file
+2) Convert them to ITEMS (that is, with the JSON parsed)
+   and append them to the ITEM_STORE.RDS file
 
 Get the historic data
 

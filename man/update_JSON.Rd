@@ -2,14 +2,14 @@
 % Please edit documentation in R/grade_V2.R
 \name{update_JSON}
 \alias{update_JSON}
-\title{Returns just the new submissions
+\title{Returns just the *new* JSON submissions
 You can get the full set from get_historic_data()
 export}
 \usage{
 update_JSON(home = ".", only_new = TRUE)
 }
 \description{
-Returns just the new submissions
+Returns just the *new* JSON submissions
 You can get the full set from get_historic_data()
 export
 }

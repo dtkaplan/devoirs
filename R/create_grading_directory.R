@@ -32,13 +32,22 @@ create_grading_directory <- function(course_name) {
     stop("Aborting: A directory for ", course_name, "already exists.")
   base::dir.create(dir_name)
   message("Grading directory", dir_name, "created.")
-  YML_stub <- glue::glue("course-name: {course_name}\nsubmissions-file: <link to CSV published version of collection site>\nclass-list:\n  - student1@gmail.com\n  - student2@hotmail.com\n")
+  YML_stub <- glue::glue("course-name: {course_name}\nsubmissions-file: <link to CSV published version of collection site>\nclass-list:\n  - student1@gmail.com [Section-1]\n  - student2@hotmail.com [Section-1]\n")
   olddir <- setwd(dir_name)
   on.exit(setwd(olddir)) # Go back where the session started from.
   cat(YML_stub, file="course-parameters.yml")
   message("Created <course-parameters.yml stub.")
-  dir.create("Score_files")
-  message("Created 'Score_files' subdirectory.")
+  # fill in empty ITEM_STORE.RDS and JSON_STORE.RDS files
+  if (!exists("JSON_STORE.RDS")) {
+    file_path <- system.file("TEMPLATES", "JSON_STORE.RDS", package = "devoirs")
+    tmp <- readRDS(file_path)
+    saveRDS(tmp |> head(0))
+  }
+  if (!exists("ITEM_STORE.RDS")) {
+    file_path <- system.file("TEMPLATES", "ITEM_STORE.RDS", package = "devoirs")
+    tmp <- readRDS(file_path)
+    saveRDS(tmp |> head(0))
+  }
   message(" \nYour turn:\nEdit <course-parameters.yml> to insert the collection site CSV link and the roster of student identifiers.")
 
 }

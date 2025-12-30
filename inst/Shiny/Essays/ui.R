@@ -19,7 +19,6 @@ ui <- page_navbar(
                           # style = "width: 50px; padding: 10px; font-size: 150%;"),
               col_widths = c(3, 1, 1)
             ),
-            br(),
             radioButtons("item_score", "Score",
                          choiceValues = c(99, 0:6),
                          choiceNames = c("none", 0:6), inline = TRUE,
@@ -27,6 +26,7 @@ ui <- page_navbar(
             htmlOutput("essay")
   ),
   nav_panel("[Close & Update]",
-            actionButton("do_update", "Close App"),
+            actionButton("do_update", "Close and Update submissions"),
+            actionButton("just_close", "Close without Updating submissions.")
   )
 )
