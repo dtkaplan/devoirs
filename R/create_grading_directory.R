@@ -45,6 +45,13 @@ create_grading_directory <- function(course_name) {
   tmp <- readLines(file_path)
   writeLines(tmp, con = paste0(course_name, "-grading.Rproj"))
 
+  # Create an .Rprofile file so that the project starts out with {devoirs}
+  # pre-loaded
+  file_path <- system.file("TEMPLATES", "Rprofile", package = "devoirs")
+  tmp <- readLines(file_path)
+  writeLines(tmp, con = paste0(course_name, ".Rprofile"))
+
+
   # fill in empty ITEM_STORE.RDS and JSON_STORE.RDS files
   if (!exists("JSON_STORE.RDS")) {
     file_path <- system.file("TEMPLATES", "JSON_STORE.RDS", package = "devoirs")

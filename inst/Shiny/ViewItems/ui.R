@@ -5,7 +5,7 @@ library(bslib)
 library(DT)
 
 ui <- page_navbar(
-  title = "{devoirs} reporting",
+  title = "{devoirs} document reporting",
   theme = bslib::bs_theme(bootswatch = "flatly"),
 
   nav_panel("[Select]",
@@ -24,11 +24,24 @@ ui <- page_navbar(
                                  choices = c(), selected = character(0))),
               column(4,
                      selectizeInput("item", "Select Items", choice = c(),
-                                    multiple = TRUE, selected = character(0)))
+                                    multiple = TRUE, selected = character(0))),
+              textOutput("how_many_essays", inline = TRUE)
             )),
   nav_panel("[View essays]",
             actionButton("save_quarto", "Save to Quarto file."),
             uiOutput("essay_report")
+  ),
+  nav_panel("[MC summary]",
+            "Summarizes the MC scores for all items in the selected document.",
+            tableOutput("MCsummary")
+  ),
+  nav_panel("[MC item summary]",
+            "Shows class performance for all MC items (across all sections)",
+            tableOutput("MCitems")
+  ),
+  nav_panel("[Multiple Choice]",
+            "Shows scores for all multiple-choice items in the selected document",
+            tableOutput("MCscores")
   )
 
 )

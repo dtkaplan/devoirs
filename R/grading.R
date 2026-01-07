@@ -22,7 +22,7 @@ get_raw_submissions <- function(home = ".") {
   tmp <- readr::read_csv(params$submissions_file, show_col_types = FALSE)
   names(tmp) <- c("timestamp", "tentative", "contents")
   # resolve the tentative submitter address to take care of aliases
-  tmp <- tmp |> dplyr::left_join(params$aliases)
+  tmp <- tmp |> suppressMessages(dplyr::left_join(params$aliases))
 
   # WHERE AM I DOING SOMETHING WITH THE ALIASES????
 

@@ -10,7 +10,7 @@ function(input, output, session) {
   PARAMS <- reactiveVal() # course parameters
   score_flag <- reactiveVal(FALSE)
   STUDENT <- reactiveVal()
-  student_n <- 1 # the index of the current student being graded
+  student_n <- reactiveVal(1) # the index of the current student being graded
 
   # Start up---read in the items and scores
   initial_read <- reactive({
@@ -91,8 +91,8 @@ function(input, output, session) {
 
   observeEvent(input$item, {
     tmp <- STUDENTS_for_ITEM()
-    student_n <<- 1
-    STUDENT(tmp[student_n])
+    student_n(1)
+    STUDENT(tmp[student_n()])
   },
   ignoreNULL = TRUE,
   ignoreInit = TRUE)
@@ -100,8 +100,8 @@ function(input, output, session) {
   output$number_of_essays <- renderText({
     input$item # for the dependency
     n <- length(STUDENTS_for_ITEM())
-    this_one <- student_n
-    glue::glue("{this_one} of {n} students")
+    this_one <- student_n()
+    glue::glue("essay {this_one} of {n}")
   })
 
   # just those students who have been selected and answered the item
@@ -118,7 +118,7 @@ function(input, output, session) {
     tmp <- intersect(tmp, stu) # a vector
     if (length(tmp) == 0) stop("Expectation violated")
     # Reinitialize first student
-    student_n <<- 1
+    student_n(1)
     STUDENT(tmp[1])
     this_essay() # cause it to be displayed
 
@@ -219,18 +219,18 @@ function(input, output, session) {
 
 
   observeEvent(input$prev_student, {
-      if (student_n > 1) {
-        student_n <<- student_n - 1
-        STUDENT(STUDENTS_for_ITEM()[student_n])
+      if (student_n() > 1) {
+        student_n(student_n() - 1)
+        STUDENT(STUDENTS_for_ITEM()[student_n()])
       }
   },
   ignoreNULL = TRUE,
   ignoreInit = TRUE)
 
   observeEvent(input$next_student, {
-    if (student_n < length(STUDENTS_for_ITEM())) {
-      student_n <<- student_n + 1
-      STUDENT(STUDENTS_for_ITEM()[student_n])
+    if (student_n() < length(STUDENTS_for_ITEM())) {
+      student_n(student_n() + 1)
+      STUDENT(STUDENTS_for_ITEM()[student_n()])
     }
   },
   ignoreNULL = TRUE,

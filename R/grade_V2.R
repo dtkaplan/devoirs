@@ -246,13 +246,13 @@ EssayReport <- function(dir_name = NULL) {
 
 
   shiny::shinyOptions(cwd = dir_name)
-  choices <- shiny::runApp(system.file("Shiny/DevoirsChoices", package = "devoirs"),
+  choices <- shiny::runApp(system.file("Shiny/ViewItems", package = "devoirs"),
                 launch.browser = TRUE)
 }
 
 #' @export
 ReadEssays <- function() {
-  shiny::runApp(system.file("Shiny/DevoirsChoices", package = "devoirs"),
+  shiny::runApp(system.file("Shiny/ViewItems", package = "devoirs"),
                 launch.browser = TRUE)
 }
 
@@ -277,6 +277,6 @@ ScoreEssays <- function(dir_name = NULL) {
 
 
   shiny::shinyOptions(cwd = dir_name)
-  shiny::runApp(system.file("Shiny/Essays", package = "devoirs"),
+  shiny::runApp(system.file("Shiny/GradeEssays", package = "devoirs"),
                 launch.browser = TRUE)
 }

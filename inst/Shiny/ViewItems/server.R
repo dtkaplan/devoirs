@@ -25,12 +25,12 @@ function(input, output, session) {
     if (nchar(input$document) >= 1 &&
         length(input$item) >= 1 &&
         length(input$sections) >=1) {
-      tmp <- devoirs::essay_summary(
+      tmp <- devoirs:::essay_summary(
         HOME(),
         doc_name = input$document,
         item_name = input$item,
         sections = input$sections)
-      tmp <- devoirs::essays_to_markdown(tmp)
+      tmp <- devoirs:::essays_to_markdown(tmp)
     } else {
       tmp <- "Make selections for your report."
     }
@@ -65,6 +65,37 @@ function(input, output, session) {
       docs <- ITEMS() |> dplyr::pull(docid) |> unique()
       updateSelectInput(session, "document", choices = docs, selected = character(0))
     }
+  })
+
+  # Total MC scores for each student
+  output$MCsummary <- renderTable({
+    if (nchar(input$document) > 0) {
+      tmp <- MC_doc_summary(home = HOME(),
+                           docid = input$document,
+                           Items = ITEMS(),
+                           sections = input$sections)
+      tmp
+    } else tibble::tibble()
+  })
+  # Performance (across all students) of each item in the document
+  output$MCitems <- renderTable({
+    this_doc_items <- ITEMS() |>
+      dplyr::filter(docid == input$document)
+    if (nrow(this_doc_items) == 0) tibble::tibble()
+    else MC_items(HOME(), Items = this_doc_items)
+  })
+
+
+
+  # MC scores broken down by student and item
+  output$MCscores <- renderTable({
+    if (nchar(input$document) > 0) {
+    tmp <- report_doc_MC(home = HOME(),
+                  docid = input$document,
+                  Items = ITEMS(),
+                  sections = input$sections)
+    tmp
+    } else tibble::tibble()
   })
 
   observe({
@@ -121,6 +152,29 @@ function(input, output, session) {
       }
     }
   )
+
+  output$how_many_essays <- renderText({
+    if (length(input$item) == 0) return("No item selected.")
+    tmp <-
+    if (nchar(input$item) == 0) c()
+    else {devoirs:::essay_summary(
+      HOME(),
+      doc_name = input$document,
+      item_name = input$item,
+      sections = input$sections) |>
+      dplyr::filter(!is.na(contents)) |>
+      dplyr::pull(student) |>
+      unique()
+    }
+
+
+    if (length(tmp) > 0) {
+      glue::glue("{length(tmp)} essays available. View in Essays tab.")
+    } else {
+      "No essays available for this item."
+    }
+  })
+
   output$valid_home_dir <- renderText({
     if (!is_valid_directory(HOME())) "ERROR: Must select valid grading directory."
     else "Proceed"

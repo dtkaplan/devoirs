@@ -3,19 +3,8 @@
 #' There must be an All_items.RSD in the grading directory.
 #' If not, run update_items() to create one.
 #'
-#' @rdname V2reports
+#' @rdname devoirsreports
 #'
-#'
-#'
-#'
-#'
-valid_All_items <- function(home = ".") {
-  res <- get_old_ITEMS(home)
-  if (nrow(res) == 0) stop("Must run update_items() first.")
-  else res
-}
-
-#' @rdname V2reports
 #' @export
 submissions_by_student <- function(home = "." ) {
   Items <- valid_All_items()
@@ -27,26 +16,37 @@ submissions_by_student <- function(home = "." ) {
                      .by = c(student, docid))
 }
 
-#' @rdname V2reports
+#' Summarizes the multiple-choice items across all documents
+#' @rdname devoirsreports
 #' @export
-MC_items <- function(home = ".") {
-  Items <- valid_All_items() |>
+MC_items <- function(home = ".", Items = NULL) {
+  if (is.null(Items))
+    Items <- valid_All_items(home)
+  Items <- Items |>
     dplyr::filter(!is.na(correct))
-  Correct <- Items |> dplyr::select(itemid, contents, correct) |>
+  Correct <- Items |>
+    dplyr::select(docid, itemid, contents, correct) |>
     dplyr::filter(correct) |> unique() |>
-    dplyr::mutate(correct = contents) |> dplyr::select(-contents)
+    dplyr::mutate(correct = contents) |>
+    dplyr::select(-contents)
+
+  # YOU WERE HERE
+
 
   Counts <- Items |>
-    dplyr::summarize(count = dplyr::n(), .by = c(itemid, contents)) |>
-    tidyr::pivot_wider(id_cols = itemid, names_from = contents,
+    dplyr::summarize(count = dplyr::n(), .by = c(docid, itemid, contents)) |>
+    tidyr::pivot_wider(id_cols = c(docid, itemid), names_from = contents,
                        values_from = count,
                        values_fill = 0)
   Counts <- Counts[sort(names(Counts))] |>
-    dplyr::relocate(itemid)
+    dplyr::relocate(itemid) |>
+    dplyr::relocate(docid)
 
-  Counts <- dplyr::inner_join(Counts, Correct)
+  Counts <- dplyr::inner_join(
+    Counts, Correct,
+    by = dplyr::join_by(docid == docid, itemid == itemid))
 
-  Mat <- Counts |> dplyr::select(-itemid, -correct) |>
+  Mat <- Counts |> dplyr::select(-docid, -itemid, -correct) |>
     as.matrix()
   total <- rowSums(Mat)
   Get <- matrix(c(1:nrow(Mat), as.numeric(Counts$correct)), ncol = 2)
@@ -60,8 +60,6 @@ MC_items <- function(home = ".") {
   dplyr::inner_join(Counts, Links)
 }
 
-#' @rdname V2
-#' @export
 essay_summary <- function(home = "~/UATX/GRADING/QR-A-W26",
                           doc_name = "One-minute",
                           item_names = "1-min-week1-a",
@@ -87,7 +85,7 @@ essay_summary <- function(home = "~/UATX/GRADING/QR-A-W26",
   Doc_items <- ITEMS |>
     dplyr::filter(docid == doc_name)
 
-  if (nrow(Doc_items) == 0) stop(paste0("Document", doc_name, "is not among submissions."))
+  if (nrow(Doc_items) == 0) stop(paste0("Document ", doc_name, " is not among submissions."))
 
   Essays <- Doc_items |>
     dplyr::filter(itemid %in% item_names)
@@ -123,9 +121,6 @@ essay_summary <- function(home = "~/UATX/GRADING/QR-A-W26",
   Essays
 }
 
-
-#' @rdname V2
-#' @export
 essays_to_markdown <- function(essays, latest = TRUE) {
   essays <- essays |>
     dplyr::mutate(score = ifelse(is.na(score), "none", score))
@@ -164,4 +159,10 @@ essays_to_markdown <- function(essays, latest = TRUE) {
   }
 
   paste(unlist(Res), collapse = "\n\n") # Just the character string.
+}
+
+valid_All_items <- function(home = ".") {
+  res <- get_old_ITEMS(home)
+  if (nrow(res) == 0) stop("Must run update_items() first.")
+  else res
 }

@@ -8,14 +8,14 @@ ui <- page_navbar(
   title = "{devoirs} essay grading",
   theme = bslib::bs_theme(bootswatch = "flatly"),
   nav_panel("[Essays]",
+            splitLayout(
+              selectizeInput("sections", "Select class section",
+                                    choices = LETTERS, multiple = TRUE),
+              selectizeInput("student", "Select student", choices = "", multiple = TRUE),
+              cellWidths = 250),
             fluidRow(
-              column(5, selectizeInput("sections", "Select class section",
-                                    choices = LETTERS, multiple = TRUE)),
-              column(5, selectizeInput("student", "Select student", choices = "", multiple = TRUE))
-              ),
-            fluidRow(
-              column(5, selectInput("document", "Select Document", choices = c())),
-              column(5, selectInput("item", "Select Item", choice = c()))
+              column(3, selectInput("document", "Select Document", choices = c())),
+              column(3, selectInput("item", "Select Item", choice = c()))
             ),
             fluidRow(
               column(1, actionButton(inputId ="prev_student", label = icon("arrow-left"))),
