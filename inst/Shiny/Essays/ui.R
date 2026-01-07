@@ -5,19 +5,23 @@ library(bslib)
 library(DT)
 
 ui <- page_navbar(
-  title = "{devoirs} grading",
+  title = "{devoirs} essay grading",
+  theme = bslib::bs_theme(bootswatch = "flatly"),
   nav_panel("[Essays]",
-            selectizeInput("sections", "Select class section", choices = LETTERS, multiple = TRUE),
-            selectizeInput("student", "Select student", choices = "", multiple = TRUE),
-            selectInput("document", "Select Document", choices = c()),
-            selectInput("item", "Select Item", choice = c()),
-            layout_columns(
-              textOutput("current_student"),
-              actionButton(inputId ="prev_student", label = icon("arrow-left")),
-                          # style = "width: 50px; padding: 10px; font-size: 150%;"),
-              actionButton(inputId ="next_student", label = icon("arrow-right")),
-                          # style = "width: 50px; padding: 10px; font-size: 150%;"),
-              col_widths = c(3, 1, 1)
+            fluidRow(
+              column(5, selectizeInput("sections", "Select class section",
+                                    choices = LETTERS, multiple = TRUE)),
+              column(5, selectizeInput("student", "Select student", choices = "", multiple = TRUE))
+              ),
+            fluidRow(
+              column(5, selectInput("document", "Select Document", choices = c())),
+              column(5, selectInput("item", "Select Item", choice = c()))
+            ),
+            fluidRow(
+              column(1, actionButton(inputId ="prev_student", label = icon("arrow-left"))),
+              column(1, actionButton(inputId ="next_student", label = icon("arrow-right"))),
+              column(4, textOutput("current_student", inline=TRUE)),
+              column(6, textOutput("number_of_essays", inline=TRUE))
             ),
             radioButtons("item_score", "Score",
                          choiceValues = c(99, 0:6),

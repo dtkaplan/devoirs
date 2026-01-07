@@ -1,14 +1,6 @@
-#
-# This is the server logic of a Shiny web application. You can run the
-# application by clicking 'Run App' above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    https://shiny.posit.co/
-#
-
 library(shiny)
-
+library(devoirs)
+library(dplyr)
 
 # Define server logic required to draw a histogram
 function(input, output, session) {
@@ -91,7 +83,6 @@ function(input, output, session) {
       unique()
     if (length(tmp) > 0) {
       updateSelectInput(session, "item", choices = tmp, selected = tmp[1])
-
     }
   },
   ignoreNULL = TRUE,
@@ -106,26 +97,36 @@ function(input, output, session) {
   ignoreNULL = TRUE,
   ignoreInit = TRUE)
 
+  output$number_of_essays <- renderText({
+    input$item # for the dependency
+    n <- length(STUDENTS_for_ITEM())
+    this_one <- student_n
+    glue::glue("{this_one} of {n} students")
+  })
 
   # just those students who have been selected and answered the item
-  STUDENTS_for_ITEM <- reactive({
-      doc <- req(isolate(input$document))
-      item <- req(input$item)
-      tmp <- get_all_essays() |>
-        dplyr::filter(docid == doc, itemid == item) |>
-        dplyr::pull(student) |>
-        unique()
-      # This should never be empty
-      stu <- STUDENTS_SELECTED()
-      tmp <- intersect(tmp, stu) # a vector
-      if (length(tmp) == 0) stop("Expectation violated")
-      # Reinitialize first student
-      # student_n <<- 1
-      # STUDENT(tmp[1])
-      # this_essay() # cause it to be displayed
+  STUDENTS_for_ITEM <- eventReactive(input$item, {
+    message("In STUDENTS_for_ITEM")
+    doc <- req(isolate(input$document))
+    item <- req(input$item)
+    tmp <- get_all_essays() |>
+      dplyr::filter(docid == doc, itemid == item) |>
+      dplyr::pull(student) |>
+      unique()
+    # This should never be empty
+    stu <- STUDENTS_SELECTED()
+    tmp <- intersect(tmp, stu) # a vector
+    if (length(tmp) == 0) stop("Expectation violated")
+    # Reinitialize first student
+    student_n <<- 1
+    STUDENT(tmp[1])
+    this_essay() # cause it to be displayed
 
-      return(tmp)
-  })
+    tmp
+  },
+  ignoreNULL = TRUE,
+  ignoreInit = TRUE)
+
 
   # When the choice for sections and/or student changes,
   # remake the STUDENTS_SELECTED() vector
