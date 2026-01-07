@@ -7,7 +7,7 @@
 \usage{
 update_items(home = ".")
 
-JSON_to_ITEMS(JSONentries)
+JSON_to_ITEMS(JSONentries, aliases)
 }
 \arguments{
 \item{home}{the name of the home directory, usually "."}

@@ -1,0 +1,84 @@
+## Testing numeric input
+
+```{r include=FALSE}
+library(devoirs)
+library(mosaicCalc)
+```
+
+::::{.callout-warning collapse=true}
+### Remember to hand in your work ...
+::: {.panel-tabset}
+## Submitting answers
+
+At any point, you can submit your answers by collecting them and uploading them to the class site.
+
+`r devoirs_start_no_link()`
+
+```{r echo=FALSE}
+devoirs_end()
+```
+
+[Link to upload site]({{< var devoirs.uploadsite >}}){target="_blank"}
+
+## Clearing document memory
+If the answers that have been loaded automatically are not yours, press this button before starting your work:
+`r devoirs::clear_persistent_storage()`
+:::
+
+::::
+
+
+`r devoirs::push_answer_style("block")`
+
+1. Which of these is closest to $\pi$?
+`r devoirs_set(1:5, 3, id="closetopi")`
+
+2. We live on Earth.
+`r devoirsTF(TRUE)`
+
+3. Which season is coldest?
+```{mcq}
+#| label: coldest-season
+#| inline: true
+1. Winter [correct]
+2. Spring
+3. Summer
+4. Fall
+```
+
+
+```{r}
+#| echo: FALSE
+#| results: "asis"
+val_one_input <- function(seed=9382) {
+  f <- mosaicCalc::doodle_fun(~ x, seed = seed)
+  fvals <- f(seq(-3,3,by = .1))
+  span <- range(fvals)
+  offset <- diff(span)/10
+  letter_positions <- sort(sample(-3:3, 3))
+  letter_vals <- round(f(letter_positions), 1)
+  Marks <- tibble::tibble(x = letter_positions, y = min(span), 
+                          labels = letters[1:length(letter_vals)])
+  rvals <- round(f(seq(span[1], span[2], length = 20)), 1)
+  res <- character(0)
+  for (k in 1:length(letter_vals)) {
+    prompt = glue::glue("{k}. What is the value at input ({letters[k]})?")
+    this_val <- letter_vals[k]                
+    exclude <- (rvals < this_val + offset) & (rvals > this_val - offset)  
+    mcq <- devoirs::devoirs_set(
+      sort(c(this_val, sample(rvals[!exclude], 5 ))), 
+           correct = this_val) 
+    res <- c(res, prompt, mcq, "\n\n")
+  }
+  P <- mosaicCalc::slice_plot(f(x) ~ x, mosaicCalc::domain(x = -3:3)) |>
+    gf_label(y ~ x, label = ~labels, data = Marks, color = "blue", size=6)
+  
+  list(P = P, text = res)
+}
+
+foo <- val_one_input()
+foo$P
+```
+
+`r paste(foo$text, collapse = "\n\n")`
+

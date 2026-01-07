@@ -36,7 +36,15 @@ create_grading_directory <- function(course_name) {
   olddir <- setwd(dir_name)
   on.exit(setwd(olddir)) # Go back where the session started from.
   cat(YML_stub, file="course-parameters.yml")
+  # add a folder for REPORTS
+  base::dir.create("REPORTS")
   message("Created <course-parameters.yml stub.")
+
+  # Create an .rproj file so that grading can be done in an RSTUDIO project
+  file_path <- system.file("TEMPLATES", "RPROJ.txt", package = "devoirs")
+  tmp <- readLines(file_path)
+  writeLines(tmp, con = paste0(course_name, "-grading.Rproj"))
+
   # fill in empty ITEM_STORE.RDS and JSON_STORE.RDS files
   if (!exists("JSON_STORE.RDS")) {
     file_path <- system.file("TEMPLATES", "JSON_STORE.RDS", package = "devoirs")

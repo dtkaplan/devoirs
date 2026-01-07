@@ -3,9 +3,13 @@
 #' @param qID unique text string
 #' @param rows number of lines in empty text area (4)
 #' @param cols number of characters available in each line (50)
+#' @param str Sets the prompt in the box that disappears
+#' @param contents Character string which will become the default contents of the widget.
 #'
 #' @export
-devoirs_text <- function(qID, rows=4, cols=50, code=NULL, str = "Enter your response to {code} here") {
+devoirs_text <- function(qID, rows=4, cols=50,
+                         contents = "", # by default, nothing
+                         code=NULL, str = "Enter your response to {code} here") {
   # keep labels unique
   if (store_devoirs_labels$duplicated(qID)) warning(qID, " is a duplicated label.")
   else store_devoirs_labels$add(qID)
@@ -19,6 +23,7 @@ devoirs_text <- function(qID, rows=4, cols=50, code=NULL, str = "Enter your resp
   tagList(
     persist_text(qID) |> htmltools::HTML(),
     tags$textarea(
+      contents,
       id = qID,
       name = qID,
       class = class,

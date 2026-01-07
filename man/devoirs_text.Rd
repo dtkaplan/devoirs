@@ -8,6 +8,7 @@ devoirs_text(
   qID,
   rows = 4,
   cols = 50,
+  contents = "",
   code = NULL,
   str = "Enter your response to {code} here"
 )
@@ -18,6 +19,10 @@ devoirs_text(
 \item{rows}{number of lines in empty text area (4)}
 
 \item{cols}{number of characters available in each line (50)}
+
+\item{contents}{Character string which will become the default contents of the widget.}
+
+\item{str}{Sets the prompt in the box that disappears}
 }
 \description{
 Create a text-entry widget for collection by devoirs package

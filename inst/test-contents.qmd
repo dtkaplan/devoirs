@@ -1,0 +1,8 @@
+# Testing putting contents in a devoirs_text() box.
+
+```{r include=FALSE}
+library(devoirs)
+```
+
+
+`r devoirs::devoirs_text("my-id", contents="Now is the time\nfor all good men\nto come to the aid")`

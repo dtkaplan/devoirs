@@ -10,6 +10,8 @@ update_items <- function(home = ".") {
   # Make sure we are in a grading directory
   if (!is_valid_directory(home)) stop(paste(home, "is not a grading directory."))
 
+  # Get the aliases field to correct email addresses
+  PARAMS <- get_course_params(home)
   # ensure that there is an ITEM_STORE.RDS file
   item_store_name <- paste(home, "ITEM_STORE.RDS")
   new_flag <- exists(item_store_name)
@@ -21,7 +23,7 @@ update_items <- function(home = ".") {
     message("No new submissions")
     return(NULL)
   }
-  new_items <- JSON_to_ITEMS(new_submissions)
+  new_items <- JSON_to_ITEMS(new_submissions, PARAMS$aliases)
   previous_items <- get_old_ITEMS(home) # get from ITEM_STORE.RDS
   if (nrow(previous_items) == 0) {
     most_recent <- "2000-1-1 00:00:01 UTC"
@@ -98,15 +100,20 @@ update_JSON <- function(home = ".", only_new = TRUE) {
 #' or as recorded in the
 #' @rdname GradingV2
 #' @export
-JSON_to_ITEMS <- function(JSONentries) {
+JSON_to_ITEMS <- function(JSONentries, aliases) {
+  # fix any aliases
+  aliases <- aliases |> dplyr::select(tentative, email2 = email)
+  JSONentries <- JSONentries |>
+    dplyr::left_join(aliases) |>
+    dplyr::mutate(email = ifelse(is.na(email), email2, email))
   Res <- as.list(1:nrow(JSONentries))
   for (k in 1:nrow(JSONentries)) {
     Res[[k]] <- json_to_tbl(JSONentries[k,])
   }
 
-  hashes <- function(vec) {
-    stringi::stri_rand_strings(length(vec), 8, pattern = "[A-Za-z0-9]")
-  }
+  # hashes <- function(vec) {
+  #   stringi::stri_rand_strings(length(vec), 8, pattern = "[A-Za-z0-9]")
+  # }
 
   Res <- dplyr::bind_rows(Res) |>
     dplyr::filter(!grepl("null$", itemid)) |>
@@ -131,6 +138,9 @@ parse_json <- function(contents) {
 #' Convert a set of JSON submissions to a
 json_to_tbl <- function(raw) {
   entries <- parse_json(raw$contents)
+  # kill off the emptysubmissions.
+  entries$Essays <- entries$Essays |>
+    dplyr::filter(nchar(contents) > 0)
   MC <- if (length(entries$MC) == 0) {NULL}
   else {
     entries$MC |> dplyr::mutate(
@@ -142,7 +152,7 @@ json_to_tbl <- function(raw) {
 
   Items <- dplyr::bind_rows(entries$Essays, MC)
   Items$timestamp = raw$timestamp
-  Items$student = raw$tentative
+  Items$student = raw$email
   Items$docid = raw$docid
 
   Items
@@ -216,7 +226,38 @@ readTmpScores <- function(home = ".", empty = TRUE) {
 }
 
 #' @export
-ViewEssays <- function(dir_name = NULL) {
+EssayReport <- function(dir_name = NULL) {
+  # Get from arguments if they give the name of the directory
+  if (is.null(dir_name)) dir_name <- getwd()
+
+  if (!is_valid_directory(dir_name)) {
+    message("Navigate to your grading directory.")
+    while(TRUE) {
+      dir_name <- rstudioapi::selectDirectory(caption="Select the grading directory.")
+      if (is_valid_directory(dir_name)) break
+      else warning(glue::glue("{dir_name} is not a {{devoirs}} grading directory"))
+    }
+  }
+
+  update_flag <- readline(prompt = "Do you want to update, bringing new submissions from the collection site? [yes or no]")
+  if (grepl("y", update_flag)) {
+    update_items(home = dir_name)
+  }
+
+
+  shiny::shinyOptions(cwd = dir_name)
+  choices <- shiny::runApp(system.file("Shiny/DevoirsChoices", package = "devoirs"),
+                launch.browser = TRUE)
+}
+
+#' @export
+ReadEssays <- function() {
+  shiny::runApp(system.file("Shiny/DevoirsChoices", package = "devoirs"),
+                launch.browser = TRUE)
+}
+
+#' @export
+ScoreEssays <- function(dir_name = NULL) {
   # Get from arguments if they give the name of the directory
   if (is.null(dir_name)) dir_name <- getwd()
 
