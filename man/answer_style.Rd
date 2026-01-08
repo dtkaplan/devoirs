@@ -3,7 +3,7 @@
 \name{push_answer_style}
 \alias{push_answer_style}
 \alias{pop_answer_style}
-\title{Controls answer/hint display in `{devoirs}` items.}
+\title{Controls answer/hint display in \code{{devoirs}} items.}
 \usage{
 push_answer_style(type)
 
@@ -11,24 +11,23 @@ pop_answer_style(clear = FALSE)
 }
 \arguments{
 \item{type}{The type of display.
-Currently only `"none"` (no display) and `"block"` (do display) are allowed.}
+Currently only \code{"none"} (no display) and \code{"block"} (do display) are allowed.}
 
-\item{remember}{DEPRECATED. Use this `type` for future questions.
-Equivalent to `push_answer_style(type)`.}
+\item{remember}{DEPRECATED. Use this \code{type} for future questions.
+Equivalent to \code{push_answer_style(type)}.}
 }
 \description{
 This is still in draft state and uses a simple CSS display style mechanism.
-Optionally, authors using `{devoirs}` can choose to display answers
-or hints for multiple-choice questions. The  `answer_style()` functions
+Optionally, authors using \code{{devoirs}} can choose to display answers
+or hints for multiple-choice questions. The  \code{answer_style()} functions
 described here allow the display to be controlled on a section or document
 level.
 }
 \details{
-item-by-item basis with the `#| show_hints: true` chunk option.
+item-by-item basis with the \verb{#| show_hints: true} chunk option.
 The section or document level.
-
-
-
-- `push_answer_style()` stores the display type for successive questions.
-- `pop_answer_style()` reverts to the previous answer style pushed.
+\itemize{
+\item \code{push_answer_style()} stores the display type for successive questions.
+\item \code{pop_answer_style()} reverts to the previous answer style pushed.
+}
 }

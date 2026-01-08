@@ -250,33 +250,5 @@ EssayReport <- function(dir_name = NULL) {
                 launch.browser = TRUE)
 }
 
-#' @export
-ReadEssays <- function() {
-  shiny::runApp(system.file("Shiny/ViewItems", package = "devoirs"),
-                launch.browser = TRUE)
-}
-
-#' @export
-ScoreEssays <- function(dir_name = NULL) {
-  # Get from arguments if they give the name of the directory
-  if (is.null(dir_name)) dir_name <- getwd()
-
-  if (!is_valid_directory(dir_name)) {
-    message("Navigate to your grading directory.")
-    while(TRUE) {
-      dir_name <- rstudioapi::selectDirectory(caption="Select the grading directory.")
-      if (is_valid_directory(dir_name)) break
-      else warning(glue::glue("{dir_name} is not a {{devoirs}} grading directory"))
-    }
-  }
-
-  update_flag <- readline(prompt = "Do you want to update, bringing new submissions from the collection site? [yes or no]")
-  if (grepl("y", update_flag)) {
-    update_items(home = dir_name)
-  }
 
 
-  shiny::shinyOptions(cwd = dir_name)
-  shiny::runApp(system.file("Shiny/GradeEssays", package = "devoirs"),
-                launch.browser = TRUE)
-}

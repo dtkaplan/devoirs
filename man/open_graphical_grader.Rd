@@ -11,13 +11,15 @@ open_graphical_grader(dir_name = NULL)
 }
 \description{
 The graphical grader is a shiny app that let's you browse and score student
-submissions via the `{devoirs}` grading system. You must have a grading directory
-set up on your laptop, as made by `create_grading_directory()`.
-1. The course-params.yaml file must be edited by you to
+submissions via the \code{{devoirs}} grading system. You must have a grading directory
+set up on your laptop, as made by \code{create_grading_directory()}.
+\enumerate{
+\item The course-params.yaml file must be edited by you to
 give the access URL for the collection site, the name of the course, and a class-list of
 submission email addresses (and any aliases students use).
-2. Once this is set up, within R you can `setwd()` to the grading directory or,
-optionally, specify it as a character string with the `dir` argument. If the specified directory
+\item Once this is set up, within R you can \code{setwd()} to the grading directory or,
+optionally, specify it as a character string with the \code{dir} argument. If the specified directory
 is not a valid grading directory, you will be prompted to navigate to one. If you don't have one,
-you shouldn't yet be using `open_graphical_grader()`.
+you shouldn't yet be using \code{open_graphical_grader()}.
+}
 }

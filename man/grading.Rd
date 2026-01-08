@@ -6,9 +6,11 @@
 \alias{update_JSON_submissions}
 \title{Get the new submissions from the repo
 return them as a data frame for later processing which will
-1) Append them to the JSON_STORE.RDS file
-2) Convert them to ITEMS (that is, with the JSON parsed)
-   and append them to the ITEM_STORE.RDS file}
+\enumerate{
+\item Append them to the JSON_STORE.RDS file
+\item Convert them to ITEMS (that is, with the JSON parsed)
+and append them to the ITEM_STORE.RDS file
+}}
 \usage{
 get_raw_submissions(home = ".")
 
@@ -24,9 +26,11 @@ update_JSON_submissions(home = ".")
 \description{
 Get the new submissions from the repo
 return them as a data frame for later processing which will
-1) Append them to the JSON_STORE.RDS file
-2) Convert them to ITEMS (that is, with the JSON parsed)
-   and append them to the ITEM_STORE.RDS file
+\enumerate{
+\item Append them to the JSON_STORE.RDS file
+\item Convert them to ITEMS (that is, with the JSON parsed)
+and append them to the ITEM_STORE.RDS file
+}
 
 Get the historic data
 

@@ -10,5 +10,5 @@ new_exercise_name()
 Functions for writing exercises
 }
 \details{
-Create a random name using the <animal>-<verb>-<noun> pattern.
+Create a random name using the \if{html}{\out{<animal>}}-\if{html}{\out{<verb>}}-\if{html}{\out{<noun>}} pattern.
 }

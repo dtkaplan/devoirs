@@ -1,3 +1,13 @@
+Name: Score essays
+Description: Launches a shiny app to grade student essay answers.
+Binding: ScoreEssays
+Interactive: false
+
+Name: View answers
+Description: Launches a shiny app to view all student work in a document.
+Binding: ViewDocument
+Interactive: false
+
 Name: New exercise file
 Description: Creates a reference to an efile and the efile itself from captured content
 Binding: insert_exercise_reference

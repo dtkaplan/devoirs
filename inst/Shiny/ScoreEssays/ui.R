@@ -23,9 +23,10 @@ ui <- page_navbar(
               column(4, textOutput("current_student", inline=TRUE)),
               column(6, textOutput("number_of_essays", inline=TRUE))
             ),
+            checkboxInput("quick_score", label = "Jump to next student upon scoring."),
             radioButtons("item_score", "Score",
                          choiceValues = c(99, 0:6),
-                         choiceNames = c("none", 0:6), inline = TRUE,
+                         choiceNames = paste0("<-", c("none", 0:6), "    "), inline = TRUE,
                          selected = 99),
             htmlOutput("essay")
   ),

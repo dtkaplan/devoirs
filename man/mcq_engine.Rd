@@ -10,10 +10,10 @@ mcq_engine(options)
 \item{options}{A placeholder argument used by knitr.}
 }
 \description{
-Multiple-choice questions are formatted using a knitr chunk of type `{mcq}`
-(rather than the ordinary `{r}`). The advantage of using a chunk is that unquoted
+Multiple-choice questions are formatted using a knitr chunk of type \code{{mcq}}
+(rather than the ordinary \code{{r}}). The advantage of using a chunk is that unquoted
 text can be given for the question choices. There is a special format for the contents
-of an `{mcq}` chunk, described in the vignettes. The exported function `mcq_engine()`
-is put into place with `knitr::knit_engines$set("mcq" = mcq_engine)` which is
-called (via `.onload()`) when the `{devoirs}` package is attached.
+of an \code{{mcq}} chunk, described in the vignettes. The exported function \code{mcq_engine()}
+is put into place with \code{knitr::knit_engines$set("mcq" = mcq_engine)} which is
+called (via \code{.onload()}) when the \code{{devoirs}} package is attached.
 }

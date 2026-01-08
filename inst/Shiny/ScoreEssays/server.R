@@ -106,7 +106,6 @@ function(input, output, session) {
 
   # just those students who have been selected and answered the item
   STUDENTS_for_ITEM <- eventReactive(input$item, {
-    message("In STUDENTS_for_ITEM")
     doc <- req(isolate(input$document))
     item <- req(input$item)
     tmp <- get_all_essays() |>
@@ -194,7 +193,7 @@ function(input, output, session) {
 
   observe({
     foo <- input$item_score
-    new_score() #Will get intercepted if this is a new STUDENT()
+    new_score() # Will get intercepted if this is a new STUDENT()
   })
 
   # Store the newly changed value on score radio buttons
@@ -209,6 +208,10 @@ function(input, output, session) {
       # enter it into the Scores() reactive so that it will be found the
       # next time we visit the essay
       isolate(SCORES(dplyr::bind_rows(isolate(SCORES()), this_one)))
+      # If quick grading is on, move to the next student
+      if (isolate(input$quick_score)) {
+        jump_to_next()
+      }
     } else {
       score_flag(TRUE)
     }
@@ -218,20 +221,32 @@ function(input, output, session) {
 
 
 
+
+
+  # Move display to the next student
+  jump_to_next <- reactive({
+    if (student_n() < length(STUDENTS_for_ITEM())) {
+      student_n(student_n() + 1)
+      STUDENT(STUDENTS_for_ITEM()[student_n()])
+    }
+  })
+  # Move display to the previous student
+  jump_to_previous <- reactive({
+    if (student_n() > 1) {
+      student_n(student_n() - 1)
+      STUDENT(STUDENTS_for_ITEM()[student_n()])
+    }
+  })
+
+  # Navigate between students with left-right buttons
   observeEvent(input$prev_student, {
-      if (student_n() > 1) {
-        student_n(student_n() - 1)
-        STUDENT(STUDENTS_for_ITEM()[student_n()])
-      }
+    jump_to_previous()
   },
   ignoreNULL = TRUE,
   ignoreInit = TRUE)
 
   observeEvent(input$next_student, {
-    if (student_n() < length(STUDENTS_for_ITEM())) {
-      student_n(student_n() + 1)
-      STUDENT(STUDENTS_for_ITEM()[student_n()])
-    }
+    jump_to_next()
   },
   ignoreNULL = TRUE,
   ignoreInit = TRUE)

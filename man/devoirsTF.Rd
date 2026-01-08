@@ -20,7 +20,7 @@ devoirsTF(
 not recommended.}
 
 \item{wrong.hint}{The hint (if any) to be given for a wrong response. Keep in mind that the
-wrong response is determined by the `correct` argument}
+wrong response is determined by the \code{correct} argument}
 
 \item{right.hint}{The hint for a correct response.}
 

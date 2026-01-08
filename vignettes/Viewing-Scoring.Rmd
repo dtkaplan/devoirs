@@ -1,0 +1,119 @@
+---
+title: "Viewing and Scoring Student Answers"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Viewing and Scoring Student Answers}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, include = FALSE}
+library(devoirs)
+```
+
+At the point where one or more *assignment documents* has been made available to students, and students have interacted with them and submitted answers, instructors will want to view and score student answers.
+
+First, the instructor sets up, on his or her own computer, a *grading directory*. This will typically be done for each course at the beginning of the semester, although it is possible to re-use a previously created grading directory. If there are multiple instructors/graders, it's sensible to set up a shared grading directory. Doing so requires access to a shared disk, with read and write permission. `{devoirs}` is agnostic to this setup. Ask a system adminstrator at your institution.
+
+From the *grading directory*, the instructor/grader uses either or both of two GUI apps to access the student submissions. 
+
+1. The `ScoreEssays()` command will run the app used for scoring student essays. (Multiple-choice answers are automatically scored.)
+
+2. The `ViewDocument()` command runs the app for viewing in one place all students answers to a selected *assignment document*.
+
+The effect of the *scoring app* is cumulative. Instructors/graders can re-open it whenever it is desired to add or revise scores.
+
+The *document-viewing app* reports scores given in the *scoring app* and for multiple-choice questions, which are automatically scored. 
+
+## Summarizing Student Work
+
+We haven't yet written the functions to summarize student work across all students and assignment documents. We're looking for input from instructors about how they would like summary reports to look. 
+
+## The Grading Directory
+
+A *grading directory* is an ordinary directory that is initiated with certain files used by the scoring and viewing apps. The easiest way to create a grading directory is with a ZIP file from someone who already has one. In case this is not a possibility, `{devoirs}` provides a function `create_grading_directory()` which wil be explained in @sec-create-grading-directory. We'll continue here assuming that the grading directory has already been set up.  
+
+Typically, you will want to have a separate grading directory for each course, although multiple sections of a course are easily handled within a single grading directory.
+
+### Initializing R
+
+You will be using R to update submissions and run the grading/viewing apps. If you already have R and RStudio available, confirm that you have already installed the `{devoirs}` package. If not, you can do the installation with this command:
+
+```r
+# install.packages("remotes") # if you don't have `{remotes}`
+remotes::install_github("dtkaplan/devoirs", build_vignettes = TRUE)
+```
+
+With `{devoirs}` installed, use your computer operating system to navigate to the grading directory. There you will find a `-grading.Rproj` file. Before the `-grading`, the file name will start with the name of the grading directory itself. Open the `-grading.Rproj` by clicking on it. This will start RStudio in the context of a *project* that you will use for future grading work. 
+    
+RStudio keeps a list of recently opened projects, so you can return to grading by re-opening the project. At any point, if your grading project falls off the list, you can re-open it by going back to the `-grading.Rproj` file.
+    
+[NOTE TO SELF: Need to investigate the process using POSIT instead of RStudio.] If you don't want to use RStudio, you can use any R console, navigate by hand to the grading directory, and initialize by loading `{devoirs}` with `library(devoirs)`
+
+### Initializing the grading directory
+
+These are steps to take when starting with a new grading directory or revising an existing one. Once initialized, there is minimal maintenance required.
+
+#### Update the `course-parameters.yaml` file.
+
+In your grading directory, there is a file named `course-parameters.yaml`. Confirm that the `submissions-file:` field has the URL needed to read from the *collection site.* You can do this by cutting the contents of the quoted string (without the quotes) and pasting it into your browser. This should either download a CSV file or open it in your browser. If successful, move on. Otherwise, contact the person who set up the *collection site* to get a correct URL for your grading directory.
+
+Under `class_list:` should be one or more indented lines starting with a dash. You need to set this up to include the students in your course. At its simplest, each student will have a line looking like this:
+
+```
+⎵⎵-student.name@my.university.edu
+```
+
+Where "⎵" stands for a blank space.
+
+If you have many students, you may want to assign each to one or more sections. Do this by adding to the line, in square brackets, the name(s) of the section(s). There should be no spaces in the section name. For instance, here is how to put a student in `[section-1]` and also be able to refer to the student as a member of `[honors]`.
+
+```
+⎵⎵-⎵student.name@my.university.edu⎵[section-1]⎵[honors]
+```
+
+Having multiple sections is appropriate if, for instance, you want to identify your best students so that when grading you can look at their essays first. Or, perhaps, use a section name to identify the students assigned to each of your graders, e.g. `[cathy]`.
+
+The use of an email as the student identifier is appropriate if the *collection site* is set up to include the student's email in submissions. But use whatever identifier is appropriate for your *collection site*. Ask the person who set up your collection site.
+
+All of the student's submissions will be identified by the name you use at the start of the line (following the dash). Do not use spaces in this identifier.
+
+It happens that students sometimes use a different identifier, perhaps because they gave a different address when filling in the collection form. To handle this, you can add *aliases* to consolidate all submissions from that student. For instance:
+
+```
+⎵⎵-⎵student.name@my.university.edu⎵[section-1]⎵[honors]⎵daisy@comcast.com
+```
+
+When you are using the GUI apps to look at submissions, there will be a `[-unregistered-]` section that identifies submissions from unrecognized email addresses. Use this to identify such addresses, then add them in as aliases to the appropriate student's line. (And good luck figuring out whose email address it is! For instance, `topgun_76@yahoo.com`.)
+
+### Re-initializing a grading directory
+
+If you are **re-initializing** a grading directory, for example at the start of a new semester, take these steps:
+
+1. Clean out old submissions from the collection site.
+2. In the grading directory, remove `ITEM_STORE.RDS`, `JSON_STORE.RDS`, and `Scores.RDS`.
+3. Clean out any files you no longer want in the `REPORTS` directory.
+
+Do not delete any other files. Don't modify them by hand, either, other than the `course-parameters.yml` file that you can edit at any time to, for instance, add an email alias or change a student's section.
+
+## Viewing and/or scoring submissions.
+
+As stated previously, use the `ScoreEssays()` and `ViewDocument()` commands from within the RStudio project associated with your grading directory to view and/or score submissions. 
+
+To incorporate any new submissions in your grading, run the `update_items()` command in the console, or the equivalent within the apps.
+
+Grading essays can be tedious work. In the `ScoreEssays()` app there is a checkbox labeled "Jump to next student upon scoring." When turned on, each time you enter a score the system will automatically jump to the next student. That way you need only one mouse click per student to grade the essays. Of course, you can go back and revise a score anytime you need to.
+
+Note: If you want to impose a submission deadline for an assignment document, use `update_items()` just after the deadline. The on-time submissions will appear in the apps, later submissions won't until you once again `update_items()`. You can score the on-time essays. If there is an excused late submission, you can also score those late submissions in the `Score_essays()` app. Each submission comes with a time stamp.
+
+Multiple-choice items will be scored regardless of when they were submitted. By getting a score report (from `ViewDocument()`) soon after the deadline, and entering those scores in your own gradebook (e.g. via a "course support" software system), you can exercise some control over this.
+
+[NOTE TO SELF: If needed, add a deadline manager, specifying a deadline for each document as well as overrides for particular students.]
+

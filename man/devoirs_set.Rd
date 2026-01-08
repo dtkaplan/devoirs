@@ -16,7 +16,7 @@ devoirs_set(
 \arguments{
 \item{choices}{Vector containing the member of the set to use as distractors}
 
-\item{correct}{Number or character string with the <correct> answer.}
+\item{correct}{Number or character string with the \if{html}{\out{<correct>}} answer.}
 
 \item{n}{integer, number of distractors}
 

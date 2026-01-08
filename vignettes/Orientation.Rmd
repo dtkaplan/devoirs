@@ -1,0 +1,58 @@
+---
+title: "Orientation to `{devoirs}`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Orientation to `{devoirs}`}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, include=FALSE}
+library(devoirs)
+```
+
+The `{devoirs}` package for R provides a full suite of utilities for writing course assignment documents, collecting student answers, and viewing and scoring those answers by instructors. Work with `{devoirs}` is structured into three largely independent phases to support collaboration among authors and instructors.
+
+Since different people may be involved in the different phases, documentation for each phase is provided in its own vignette. Short descriptions are given in the following. 
+
+If you are reading this document, you may already have installed R, RStudio, and the `{devoirs}` package. If not ... Instructions for installing R and RStudio are widely available on the internet. To install or update the `{devoirs}` package, use this command:
+
+```r
+# install.packages("remotes") # if you don't have `{remotes}`
+remotes::install_github("dtkaplan/devoirs", build_vignettes = TRUE)
+```
+
+## Phase 1: Writing assignment documents
+
+Student work for a course is made available via one or more **assignment documents**. 
+
+Assignment documents are written in Quarto and compiled to HTML.
+
+Deploying the HTML documents can be done using any web-server or a "course support" system such as Moodle or Canvas. The system is decentralized and allows, for instance, assignment documents provided by a textbook as well as assignment documents provided by instructors to be intermixed at will.
+
+## Phase 2: Collecting student answers
+
+The assignment documents written in Phase 1 contain editor widgets where students can compose their answers to individual prompts in the assignment. There are also radio-button widgets for multiple-choice questions.
+
+Each assignment document contains a widget that students can use to collect *all* the answers in a document, formatting these in a string that is copied to the student's clipboard.
+
+The instructor (not the author) sets up a **collection facility** such as a Google Form into which the student can paste the answer string from the clipboard. This collection facility, not `{devoirs}`, will handle all student authentication.
+
+## Phase 3: Viewing & scoring student answers
+
+For each course (or whatever granularity the instructor chooses), there is a **grading directory** on the instructor's computer. This will typically be set up at the start of a semester, although it is perfectly possible to use a *grading directory* across multiple semesters. With multiple instructors, it may be desirable to set up a single grading directory in a shared disk space.
+
+At the instructor's request, student answers are downloaded from the *collection facility*. This is done incrementally, updating storage files in the *grading directory*.
+
+Two shiny apps are provided. `ScoreEssays()` allows essay answers to be given a score, `ViewDocument()` consolidates all student submissions for one assignment document at a time.
+
+
+
+
