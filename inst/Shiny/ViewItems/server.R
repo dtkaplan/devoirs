@@ -204,7 +204,10 @@ function(input, output, session) {
                                docid = input$document,
                                until = deadline(),
                                sections = input$sections,
-                               write = TRUE)},
+                               write = TRUE)
+                updateActionButton(session, "write_reports",
+                                   label = glue::glue("Reports written for {input$document}!"))
+                },
                ignoreInit = TRUE,
                ignoreNULL = TRUE)
 

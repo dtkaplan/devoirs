@@ -27,7 +27,7 @@ ui <- page_navbar(
               tags$p("Generate CSV overall-score reports for this document for
                      each of the selected sections. They will be in the <REPORTS>
                      directory, whence you can upload them to your gradesheet."),
-              actionButton("write_reports", "Write reports"),
+              actionButton("write_reports", "Write reports", width = 300),
                 column(6,
                        dateInput("deadline_date", "Deadline date:", value = Sys.Date())
                        ),
