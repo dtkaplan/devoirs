@@ -40,7 +40,9 @@ score_document <- function(
     dplyr::summarize(escore = essay_weight*sum(score), .by = student)
 
 
-  All <- MC_scores |> dplyr::full_join(Essay_scores) |>
+  All <- MC_scores |>
+    dplyr::full_join(Essay_scores,
+                     join_by(student == student)) |>
     dplyr::mutate(escore = ifelse(is.na(escore), 0, escore), # convert NA's to zero.
                   mcscore = ifelse(is.na(mcscore), 0, mcscore)
                   ) |>

@@ -10,6 +10,11 @@ function(input, output, session) {
     else list()
   })
 
+  deadline <- reactive({
+    paste(input$deadline_date, gsub("^.* ", "", input$deadline_time)) |>
+      devoirs:::convert_time_helper()
+  })
+
   output$essay_report <- renderUI({
     shiny::markdown(report_text())
   })
@@ -197,6 +202,7 @@ function(input, output, session) {
   observeEvent(input$write_reports,
                {score_document(home = HOME(),
                                docid = input$document,
+                               until = deadline(),
                                sections = input$sections,
                                write = TRUE)},
                ignoreInit = TRUE,

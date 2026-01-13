@@ -1,4 +1,5 @@
 library(shiny)
+library(shinyTime)
 # library(shinyDirectoryInput) # from wleepang/shiny-directory-input
 library(devoirs)
 library(bslib)
@@ -9,7 +10,7 @@ ui <- page_navbar(
   theme = bslib::bs_theme(bootswatch = "flatly"),
 
   nav_panel("[Select]",
-            textOutput("valid_home_dir"),
+            #textOutput("valid_home_dir"),
             fluidRow(
               column(4,
                      selectizeInput("sections",
@@ -22,8 +23,18 @@ ui <- page_navbar(
                      selectizeInput("item", "Select Items", choice = c(),
                                     multiple = TRUE, selected = character(0))),
               textOutput("how_many_essays", inline = TRUE),
-              actionButton("write_reports", "Write Sectionwise CSV score reports (in REPORTS/"),
-            )),
+              tags$hr(),
+              tags$p("Generate CSV overall-score reports for this document for
+                     each of the selected sections. They will be in the <REPORTS>
+                     directory, whence you can upload them to your gradesheet."),
+              actionButton("write_reports", "Write reports"),
+                column(6,
+                       dateInput("deadline_date", "Deadline date:", value = Sys.Date())
+                       ),
+                column(6, timeInput("deadline_time", "Deadline time:", value = "23:00:00",
+                        seconds = FALSE))
+              )
+            ),
   nav_panel("[View essays]",
             actionButton("save_quarto", "Save to Quarto file."),
             uiOutput("essay_report")
