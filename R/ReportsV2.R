@@ -55,7 +55,7 @@ MC_items <- function(home = ".", Items = NULL) {
   Links <- Items |> dplyr::select(itemid, link) |> unique()
 
   Counts$nright <- Right
-  Counts$ntotal <- total
+  Counts$ntotal <- total |> as.integer()
 
   dplyr::inner_join(Counts, Links)
 }
@@ -63,7 +63,7 @@ MC_items <- function(home = ".", Items = NULL) {
 essay_summary <- function(home = "~/UATX/GRADING/QR-A-W26",
                           doc_name = "One-minute",
                           item_names = "1-min-week1-a",
-                          sections = "All") {
+                          sections = "All", silent = FALSE) {
   if (!is_valid_directory(home))
     stop(paste(home, "is not a {devoirs} grading directory."))
   ITEMS <- devoirs:::get_old_ITEMS(home)
@@ -90,13 +90,13 @@ essay_summary <- function(home = "~/UATX/GRADING/QR-A-W26",
   Essays <- Doc_items |>
     dplyr::filter(itemid %in% item_names)
 
-  if (nrow(Essays) == 0) stop("Item",
+  if (nrow(Essays) == 0 && !silent) warning("Item",
                               paste(item_names, collapse = ", "),
                               "not in submissions")
 
   # find any students who answered the question but aren't on the student list.
   unregistered <- setdiff(Essays$student, Students$email)
-  if (length(unregistered) > 0) {
+  if (length(unregistered) > 0 && !is.na(unregistered[1])) {
     add_to_students <- tibble::tibble(email = unregistered,
                                       section = "[-Unregistered-]")
     Students <- dplyr::bind_rows(Students, add_to_students)

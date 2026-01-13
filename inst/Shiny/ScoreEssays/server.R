@@ -2,7 +2,6 @@ library(shiny)
 library(devoirs)
 library(dplyr)
 
-# Define server logic required to draw a histogram
 function(input, output, session) {
   HOME <- reactive({getShinyOption("cwd", "/Users/kaplan/UATX/GRADING/QR-A-W26") })
   ITEMS <- reactiveVal()
@@ -51,7 +50,9 @@ function(input, output, session) {
                          selected = students[1])
   })
 
+  # force initialization
   isolate(initial_read())
+
   # set up to close the App when button pushed
   observeEvent(input$do_update,
                {devoirs:::update_items(HOME())

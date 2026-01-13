@@ -8,7 +8,7 @@
 \usage{
 ScoreEssays(dir_name = NULL)
 
-ViewDocument()
+ViewDocument(dir_name = NULL)
 }
 \description{
 These apps provide a GUI to view student submissions and score essays.

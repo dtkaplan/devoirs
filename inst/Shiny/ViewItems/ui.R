@@ -1,5 +1,5 @@
 library(shiny)
-library(shinyDirectoryInput) # from wleepang/shiny-directory-input
+# library(shinyDirectoryInput) # from wleepang/shiny-directory-input
 library(devoirs)
 library(bslib)
 library(DT)
@@ -9,10 +9,6 @@ ui <- page_navbar(
   theme = bslib::bs_theme(bootswatch = "flatly"),
 
   nav_panel("[Select]",
-            fluidRow(
-              column(6,
-                     directoryInput("home_dir", label = "Grading directory"))
-              ),
             textOutput("valid_home_dir"),
             fluidRow(
               column(4,
@@ -25,7 +21,8 @@ ui <- page_navbar(
               column(4,
                      selectizeInput("item", "Select Items", choice = c(),
                                     multiple = TRUE, selected = character(0))),
-              textOutput("how_many_essays", inline = TRUE)
+              textOutput("how_many_essays", inline = TRUE),
+              actionButton("write_reports", "Write Sectionwise CSV score reports (in REPORTS/"),
             )),
   nav_panel("[View essays]",
             actionButton("save_quarto", "Save to Quarto file."),
@@ -42,6 +39,11 @@ ui <- page_navbar(
   nav_panel("[Multiple Choice]",
             "Shows scores for all multiple-choice items in the selected document",
             tableOutput("MCscores")
+  ),
+
+  nav_panel("[Close & Update]",
+            actionButton("do_update", "Close and Update submissions"),
+            actionButton("just_close", "Close without Updating submissions.")
   )
 
 )

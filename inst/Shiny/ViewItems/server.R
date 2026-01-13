@@ -1,11 +1,8 @@
-#
 
 library(shiny)
-library(shinyDirectoryInput)
 
-# Define server logic required to draw a histogram
 function(input, output, session) {
-  HOME <- reactiveVal(".")
+  HOME <- reactive({getShinyOption("cwd", "/Users/kaplan/UATX/GRADING/QR-A-W26") })
   report_text <- reactiveVal("Will appear when you select document and items.")
   PARAMS <- reactive({
     if (is_valid_directory(HOME()))
@@ -21,6 +18,9 @@ function(input, output, session) {
     is_valid_directory(HOME())
   })
 
+
+  ## Replace devoirs:::essay_summary with a reactive???
+
   observe({
     if (nchar(input$document) >= 1 &&
         length(input$item) >= 1 &&
@@ -29,7 +29,8 @@ function(input, output, session) {
         HOME(),
         doc_name = input$document,
         item_name = input$item,
-        sections = input$sections)
+        sections = input$sections,
+        silent = TRUE)
       tmp <- devoirs:::essays_to_markdown(tmp)
     } else {
       tmp <- "Make selections for your report."
@@ -64,6 +65,7 @@ function(input, output, session) {
     if (nrow(ITEMS()) > 0) {
       docs <- ITEMS() |> dplyr::pull(docid) |> unique()
       updateSelectInput(session, "document", choices = docs, selected = character(0))
+      updateSelectizeInput(session, "item", selected = character(0))
     }
   })
 
@@ -156,12 +158,13 @@ function(input, output, session) {
   output$how_many_essays <- renderText({
     if (length(input$item) == 0) return("No item selected.")
     tmp <-
-    if (nchar(input$item) == 0) c()
+    if (any(nchar(input$item) == 0)) c()
     else {devoirs:::essay_summary(
       HOME(),
       doc_name = input$document,
       item_name = input$item,
-      sections = input$sections) |>
+      sections = input$sections,
+      silent = TRUE) |>
       dplyr::filter(!is.na(contents)) |>
       dplyr::pull(student) |>
       unique()
@@ -179,5 +182,24 @@ function(input, output, session) {
     if (!is_valid_directory(HOME())) "ERROR: Must select valid grading directory."
     else "Proceed"
   })
+
+  # set up to close the App when button pushed
+  observeEvent(input$do_update,
+               {devoirs:::update_items(HOME())
+                 stopApp()},
+               ignoreInit = TRUE)
+
+  observeEvent(input$just_close,
+               { stopApp() },
+               ignoreInit = TRUE)
+
+  # Write score reports into the REPORTS directory.
+  observeEvent(input$write_reports,
+               {score_document(home = HOME(),
+                               docid = input$document,
+                               sections = input$sections,
+                               write = TRUE)},
+               ignoreInit = TRUE,
+               ignoreNULL = TRUE)
 
 }
