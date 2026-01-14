@@ -9,6 +9,7 @@ function(input, output, session) {
   PARAMS <- reactiveVal() # course parameters
   score_flag <- reactiveVal(FALSE)
   STUDENT <- reactiveVal()
+  STUDENTS_SELECTED <- reactiveVal()
   student_n <- reactiveVal(1) # the index of the current student being graded
 
   # Start up---read in the items and scores
@@ -90,23 +91,31 @@ function(input, output, session) {
   ignoreInit = TRUE)
 
 
-  observeEvent(input$item, {
-    tmp <- STUDENTS_for_ITEM()
-    student_n(1)
-    STUDENT(tmp[student_n()])
-  },
-  ignoreNULL = TRUE,
-  ignoreInit = TRUE)
+  observeEvent(
+    c(input$item, input$item, input$student, input$no_sections),
+    {
+      tmp <- STUDENTS_for_ITEM()
+      student_n(1)
+      STUDENT(tmp[student_n()])
+    },
+    ignoreNULL = TRUE,
+    ignoreInit = TRUE)
 
   output$number_of_essays <- renderText({
     input$item # for the dependency
+    input$student
+    input$section
+    input$no_sections
     n <- length(STUDENTS_for_ITEM())
     this_one <- student_n()
     glue::glue("essay {this_one} of {n}")
   })
 
   # just those students who have been selected and answered the item
-  STUDENTS_for_ITEM <- eventReactive(input$item, {
+  STUDENTS_for_ITEM <- eventReactive(
+    c(input$item, input$no_sections, input$sections,
+      input$document, input$student),
+    {
     doc <- req(isolate(input$document))
     item <- req(input$item)
     tmp <- get_all_essays() |>
@@ -116,7 +125,7 @@ function(input, output, session) {
     # This should never be empty
     stu <- STUDENTS_SELECTED()
     tmp <- intersect(tmp, stu) # a vector
-    if (length(tmp) == 0) stop("Expectation violated")
+   # if (length(tmp) == 0) stop("Expectation violated")
     # Reinitialize first student
     student_n(1)
     STUDENT(tmp[1])
@@ -128,28 +137,29 @@ function(input, output, session) {
   ignoreInit = TRUE)
 
 
+
+
   # When the choice for sections and/or student changes,
   # remake the STUDENTS_SELECTED() vector
-  STUDENTS_SELECTED <- reactive(
-    {
-      secs <- input$sections
-      # No sections selected, not even "All"
-      # Just get the list from input$student
-      if (is.null(secs)) return(input$student)
+  observe({
+    secs <- input$sections
 
-      give_back <-
-        if ("All" %in% secs) {
-          c(isolate(PARAMS()$sections$email),
-            input$student)
-        } else {
-          tmp <- isolate(PARAMS()$sections) |>
-            dplyr::filter(section %in% secs) |>
-            dplyr::pull(email)
-          c(tmp, input$student)
-        }
+    # Just get the list from input$student
+    if (input$no_sections) STUDENTS_SELECTED(input$student)
 
-      return(unique(give_back))
-    })
+    give_back <-
+      if ("All" %in% secs) {
+        c(isolate(PARAMS()$sections$email),
+          input$student)
+      } else {
+        tmp <- isolate(PARAMS()$sections) |>
+          dplyr::filter(section %in% secs) |>
+          dplyr::pull(email)
+        c(tmp, input$student)
+      }
+
+    STUDENTS_SELECTED(unique(give_back))
+  })
 
 ### STUDENTS and SCORES
   # When the current score changes due to a STUDENT change,

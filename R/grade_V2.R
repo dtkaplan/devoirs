@@ -198,7 +198,8 @@ add_new_score <- function(score, docid, student, itemid, home = ".") {
   if (!file.exists(store_file_name))
     cat("student, docid, itemid, score, timestamp\n", file = store_file_name)
 
-  string <- paste0(paste(student, docid, itemid, score, Sys.time(), sep = ","), "\n")
+  string <- paste0(paste(student, docid, itemid,
+                         score, as.character(Sys.time()), sep = ","), "\n")
   cat(string, file=store_file_name, append = TRUE)
 
   tibble::tibble(

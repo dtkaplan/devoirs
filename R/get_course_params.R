@@ -17,13 +17,17 @@ get_course_params <- function(home = ".", silent = FALSE) {
     # Turn them into valid R names
     names(params) <- gsub("-", "_", names(params))
 
-    should_be <- c("course_name", "student_list", "class_list")
+    # Make sure all the elements are there
+    element_names <- c("course_name", "submissions_file", "class_list")
     stopM <- "" # message if there is a problem
-    for (param_name in should_be) {}
-    if (! param_name %in% names(params)) stopM <-
-      paste(stopM, glue::glue("No <{param_name}> parameter given.\n"))
+    for (param_name in element_names) {
+      if (! param_name %in% names(params)) {
+        stopM <- paste(stopM, glue::glue("No <{param_name}> parameter given.\n"))
+      }
+    }
     if (nchar(stopM) > 0) stop(stopM)
 
+    # parse the class list
     TMP <- student_properties(params$class_list)
     in_brackets <- grepl("^\\[", TMP$tentative)
 

@@ -1,0 +1,28 @@
+# A simple Quarto document using `{devoirs}`
+
+<!-- Boilerplate to activate devoirs -->
+```{r include=FALSE}
+library(devoirs)
+```
+
+`r devoirs_start_no_link()`
+
+```{r echo=FALSE}
+devoirs_end()
+```
+<!-- end of boilerplate -->
+
+1. Which season is coldest?
+```{mcq}
+#| label: coldest-season
+#| inline: true
+1. Winter [correct]
+2. Spring [hint: Sorry, but Spring is after the depths of winter]
+3. Summer [hint: Really?]
+4. Fall 
+```
+
+2. Explain (briefly) the astronomical basis for seasons. 
+
+`r devoirs::devoirs_text("why-seasons")`
+
