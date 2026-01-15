@@ -22,8 +22,14 @@ submissions_by_student <- function(home = "." ) {
 MC_items <- function(home = ".", Items = NULL) {
   if (is.null(Items))
     Items <- valid_All_items(home)
+
   Items <- Items |>
     dplyr::filter(!is.na(correct))
+
+  if (nrow(Items) == 0) {
+    return(tibble::tibble(message = "No multiple-choice questions in this document."))
+  }
+
   Correct <- Items |>
     dplyr::select(docid, itemid, contents, correct) |>
     dplyr::filter(correct) |> unique() |>

@@ -18,43 +18,40 @@ ui <- page_navbar(
                                     choices = LETTERS, multiple = TRUE)),
               column(4,
                      selectInput("document", "Select Document",
-                                 choices = c(), selected = character(0))),
-              column(4,
-                     selectizeInput("item", "Select Items", choice = c(),
-                                    multiple = TRUE, selected = character(0))),
-              textOutput("how_many_essays", inline = TRUE),
+                                 choices = c(), selected = character(0)))
+              ),
+              "You must select at least one section to see reports.",
               tags$hr(),
               tags$p("Generate CSV overall-score reports for this document for
                      each of the selected sections. They will be in the <REPORTS>
                      directory, whence you can upload them to your gradesheet."),
               actionButton("write_reports", "Write reports", width = 300),
-                column(6,
-                       dateInput("deadline_date", "Deadline date:", value = Sys.Date())
-                       ),
-                column(6, timeInput("deadline_time", "Deadline time:", value = "23:00:00",
+              fluidRow(
+              column(3, dateInput("deadline_date", "Deadline date:", value = Sys.Date())),
+              column(3, timeInput("deadline_time", "Deadline time:", value = "23:00:00",
                         seconds = FALSE))
-              )
+              ),
+              actionButton("just_close", "Close App.", width = 200, style="color: red;")
             ),
-  nav_panel("[View essays]",
-            actionButton("save_quarto", "Save to Quarto file."),
+  nav_panel("[Essays]",
+            selectizeInput("item", "Select Items", choice = c(),
+                                  multiple = TRUE, selected = character(0)),
+            "Please select one or more items to see the essays.",
+            actionButton("save_quarto", "Save essays to Quarto file for easy reading."),
             uiOutput("essay_report")
   ),
-  nav_panel("[MC summary]",
-            "Summarizes the MC scores for all items in the selected document.",
+  nav_panel("[MC scores]",
+            "Summarizes by student the MC scores for all items in the selected document.",
             tableOutput("MCsummary")
   ),
-  nav_panel("[MC item summary]",
-            "Shows class performance for all MC items (across all sections)",
+  nav_panel("[MC items]",
+            "Shows class performance for each MC item",
             tableOutput("MCitems")
   ),
-  nav_panel("[Multiple Choice]",
+  nav_panel("[Raw MC]",
             "Shows scores for all multiple-choice items in the selected document",
             tableOutput("MCscores")
   ),
 
-  nav_panel("[Close & Update]",
-            actionButton("do_update", "Close and Update submissions"),
-            actionButton("just_close", "Close without Updating submissions.")
-  )
 
 )

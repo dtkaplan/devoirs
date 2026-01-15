@@ -160,29 +160,6 @@ function(input, output, session) {
     }
   )
 
-  output$how_many_essays <- renderText({
-    if (length(input$item) == 0) return("No item selected.")
-    tmp <-
-    if (any(nchar(input$item) == 0)) c()
-    else {devoirs:::essay_summary(
-      HOME(),
-      doc_name = input$document,
-      item_name = input$item,
-      sections = input$sections,
-      silent = TRUE) |>
-      dplyr::filter(!is.na(contents)) |>
-      dplyr::pull(student) |>
-      unique()
-    }
-
-
-    if (length(tmp) > 0) {
-      glue::glue("{length(tmp)} essays available. View in Essays tab.")
-    } else {
-      "No essays available for this item."
-    }
-  })
-
   output$valid_home_dir <- renderText({
     if (!is_valid_directory(HOME())) "ERROR: Must select valid grading directory."
     else "Proceed"
@@ -209,11 +186,6 @@ function(input, output, session) {
   }
 
   # set up to close the App when button pushed
-  observeEvent(input$do_update,
-               {devoirs:::update_items(HOME())
-                 stopApp()},
-               ignoreInit = TRUE)
-
   observeEvent(input$just_close,
                { stopApp() },
                ignoreInit = TRUE)

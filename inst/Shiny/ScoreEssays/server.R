@@ -9,6 +9,7 @@ function(input, output, session) {
   PARAMS <- reactiveVal() # course parameters
   score_flag <- reactiveVal(FALSE)
   STUDENT <- reactiveVal()
+  STUDENTS_for_ITEM <- reactiveVal()
   STUDENTS_SELECTED <- reactiveVal()
   student_n <- reactiveVal(1) # the index of the current student being graded
 
@@ -112,11 +113,11 @@ function(input, output, session) {
   })
 
   # just those students who have been selected and answered the item
-  STUDENTS_for_ITEM <- eventReactive(
+  observeEvent(
     c(input$item, input$no_sections, input$sections,
-      input$document, input$student),
+      input$document, input$student), # for the dependency
     {
-    doc <- req(isolate(input$document))
+    doc <- req(input$document)
     item <- req(input$item)
     tmp <- get_all_essays() |>
       dplyr::filter(docid == doc, itemid == item) |>
@@ -131,8 +132,9 @@ function(input, output, session) {
     STUDENT(tmp[1])
     this_essay() # cause it to be displayed
 
-    tmp
+    STUDENTS_for_ITEM(tmp)
   },
+  priority = 1000,
   ignoreNULL = TRUE,
   ignoreInit = TRUE)
 
@@ -141,25 +143,31 @@ function(input, output, session) {
 
   # When the choice for sections and/or student changes,
   # remake the STUDENTS_SELECTED() vector
-  observe({
-    secs <- input$sections
+  observeEvent(
+    c(input$sections, input$student, input$item, input$no_sections),
+    {
+      secs <- input$sections
 
-    # Just get the list from input$student
-    if (input$no_sections) STUDENTS_SELECTED(input$student)
-
-    give_back <-
-      if ("All" %in% secs) {
-        c(isolate(PARAMS()$sections$email),
-          input$student)
-      } else {
-        tmp <- isolate(PARAMS()$sections) |>
-          dplyr::filter(section %in% secs) |>
-          dplyr::pull(email)
-        c(tmp, input$student)
+      # Just get the list from input$student
+      if (input$no_sections) {
+        STUDENTS_SELECTED(input$student)
+        return()
       }
 
-    STUDENTS_SELECTED(unique(give_back))
-  })
+      give_back <-
+        if ("All" %in% secs) {
+          c(isolate(PARAMS()$sections$email),
+            input$student)
+        } else {
+          tmp <- isolate(PARAMS()$sections) |>
+            dplyr::filter(section %in% secs) |>
+            dplyr::pull(email)
+          c(tmp, input$student)
+        }
+
+      STUDENTS_SELECTED(unique(give_back))
+    },
+    priority = 2000)
 
 ### STUDENTS and SCORES
   # When the current score changes due to a STUDENT change,

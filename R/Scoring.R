@@ -29,7 +29,7 @@ ScoreEssays <- function(dir_name = NULL) {
     }
   }
 
-  update_flag <- readline(prompt = "Do you want to update, bringing new submissions from the collection site? [yes or no]")
+  update_flag <- readline(prompt = "Do you want to update, bringing new submissions from the collection site? [yes or no] ")
   if (grepl("y", update_flag)) {
     update_items(home = dir_name)
   }
@@ -54,7 +54,7 @@ ViewDocument <- function(dir_name = NULL) {
     }
   }
 
-  update_flag <- readline(prompt = "Do you want to update, bringing new submissions from the collection site? [yes or no]")
+  update_flag <- readline(prompt = "Do you want to update, bringing new submissions from the collection site? [yes or no] ")
   if (grepl("y", update_flag)) {
     update_items(home = dir_name)
   }

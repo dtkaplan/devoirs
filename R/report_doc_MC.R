@@ -9,7 +9,8 @@ report_doc_MC <- function(home = ".", docid,
   # Grab the multiple choice in this document, taking only the
   # most recent for each item for each student
   Students <- students_in_section(home, sections = sections)
-  Items <- Items |> dplyr::filter(docid == docid, !is.na(correct)) |>
+  dd <- docid # So that dplyr::filter works properly.
+  Items <- Items |> dplyr::filter(docid == dd, !is.na(correct)) |>
     dplyr::filter(student %in% Students$email) |>
     dplyr::group_by(itemid, student) |>
     dplyr::arrange(desc(timestamp)) |>
