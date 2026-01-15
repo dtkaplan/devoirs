@@ -2,6 +2,10 @@
 #'
 #' @param Items data frame of all items in this course,
 #' if not specified, will read from the grading directory.
+#'
+#' @importFrom dplyr summarize
+#' @importFrom dplyr filter
+#'
 #' @export
 report_doc_MC <- function(home = ".", docid,
                           Items = valid_All_items(home),
@@ -15,19 +19,19 @@ report_doc_MC <- function(home = ".", docid,
     dplyr::group_by(itemid, student) |>
     dplyr::arrange(desc(timestamp)) |>
     dplyr::ungroup() |>
-    dplyr::filter(row_number() == 1, .by = c(itemid, student))
+    dplyr::filter(dplyr::row_number() == 1, .by = c(itemid, student))
 
   Background <- # for all students
     Items |>
     dplyr::summarize(
-      class_attempts = n(),
+      class_attempts = dplyr::n(),
       right = sum(correct),
       class_success_percent = round(100*right/class_attempts), .by = itemid) |>
     dplyr::select(-right)
 
   By_student <- Items |>
     dplyr::summarize(score = sum(correct), .by = c(itemid, student)) |>
-    left_join(Background, by = "itemid")
+    dplyr::left_join(Background, by = "itemid")
 
   By_student
 }
@@ -41,13 +45,13 @@ MC_doc_summary <- function(home = ".", docid,
 
  Class_performance <-
    Raw_report |>
-   dplyr::filter(row_number() == 1, .by = itemid) |> # just one for each item
+   dplyr::filter(dplyr::row_number() == 1, .by = itemid) |> # just one for each item
    dplyr::summarize(class_attempts = sum(class_attempts),
                     class_success = mean(class_success_percent))
  By_student <-
    Raw_report |>
    dplyr::summarize(score = sum(score),
-                    attempts = n(), .by = student) |>
+                    attempts = dplyr::n(), .by = student) |>
    dplyr::mutate(class_attempts = Class_performance$class_attempts,
                  class_success =  Class_performance$class_success)
  Missing <- students_in_section(home, sections)$email

@@ -58,12 +58,13 @@ MC_items <- function(home = ".", Items = NULL) {
   Get <- matrix(c(1:nrow(Mat), as.numeric(Counts$correct)), ncol = 2)
   Right <- Mat[Get]
 
-  Links <- Items |> dplyr::select(itemid, link) |> unique()
+  # Links <- Items |> dplyr::select(itemid, link) |> unique()
 
   Counts$nright <- Right
   Counts$ntotal <- total |> as.integer()
 
-  dplyr::inner_join(Counts, Links)
+  # dplyr::inner_join(Counts, Links)
+  Counts
 }
 
 essay_summary <- function(home = "~/UATX/GRADING/QR-A-W26",
