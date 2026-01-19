@@ -5,20 +5,19 @@ Version: 0.3.0
 Author: Daniel Kaplan
 Maintainer: Daniel Kaplan <dtkaplan@github.com>
 Description: Supports creating multiple-choice and essay questions within Quarto/HTML. Student entries for these can be collected into a JSON object suitable for handing in via a spreadsheet such as Google Forms.
-Depends: knitr, 
+Depends: 
+    R (>= 4.1.0),
+    knitr, 
     htmltools
 License: What license is it under?
 Encoding: UTF-8
-LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr
 Imports: 
     shiny,
     rstudioapi, 
-    rhandsontable,
     DT,
-    shinyDirectoryInput,
 Suggests:
     googlesheets4,
     yaml,
