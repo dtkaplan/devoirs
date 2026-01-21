@@ -24,8 +24,6 @@ function(input, output, session) {
   })
 
 
-  ## Replace devoirs:::essay_summary with a reactive???
-
   observe({
     if (nchar(input$document) >= 1 &&
         length(input$item) >= 1 &&
@@ -165,29 +163,11 @@ function(input, output, session) {
     else "Proceed"
   })
 
-  # Move any new scores in TmpScores.csv into the Scores.RDS record.
-  merge_tmpScores <- function() {
-    store_file_name <- paste0(HOME(), "/Scores.RDS")
-    old_scores <- readRDS(store_file_name)
-    New_ones <- readTmpScores(HOME()) # This also clears out the temporary file.
-    if (nrow(New_ones) > 0) {
-      New_ones <- New_ones |> dplyr::mutate(timestamp = convert_time_helper(time))
-      All <- dplyr::bind_rows(old_scores, New_ones)
-    } else {
-      All <- tmp
-    }
-    if (nrow(New_ones) > 0) {
-      # do some wrangling to get only the latest for each student, item, doc
-      # All <- All |>
-      #   dplyr::arrange(desc(timestamp)) |>
-      #   dplyr::filter(dplyr::row_number() == 1, .by = c(student, docid, itemid))
-      saveRDS(All, file = store_file_name)
-    }
-  }
-
   # set up to close the App when button pushed
   observeEvent(input$just_close,
-               { stopApp() },
+               {
+                 stopApp()
+               },
                ignoreInit = TRUE)
 
   # Write score reports into the REPORTS directory.

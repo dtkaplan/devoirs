@@ -281,7 +281,7 @@ function(input, output, session) {
       tmp <- ITEMS() |>
         dplyr::filter(
           docid == isolate(input$document),
-          itemid == isolate(input$item),
+          itemid == (input$item),  # was isolated.
           student == STUDENT()
         ) |>
         dplyr::filter(nchar(contents) > 0) |>
@@ -309,6 +309,7 @@ function(input, output, session) {
 
   # format the essay and display it
   output$essay <- renderUI({
+    input$item # for the dependency
     tmp <- this_essay()
     str <- paste("<div>", tmp$timestamp, "::", "<p>", tmp$contents, "<p></div>")
 

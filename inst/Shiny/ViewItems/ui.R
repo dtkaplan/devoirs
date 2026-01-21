@@ -8,7 +8,6 @@ ui <- page_navbar(
   title = "{devoirs} document reporting",
   theme = bslib::bs_theme(bootswatch = "flatly"),
   sidebar = sidebar(
-    "Hello",
     selectizeInput("sections",
                    "Select class section",
                    choices = LETTERS, multiple = TRUE),

@@ -35,10 +35,10 @@ score_document <- function(
   MC_scores <- Items |>
     dplyr::summarize(mcscore = sum(correct), .by = c(student, docid))
 
-  Essay_scores <- readRDS(glue::glue("{home}/Scores.RDS")) |>
+  Essay_scores <- devoirs:::read_score_keeper(home) |>
+    # readRDS(glue::glue("{home}/Scores.RDS")) |> # replaced by read_score_keeper()
     dplyr::filter(docid == this_document) |>
     dplyr::summarize(escore = essay_weight*sum(score), .by = student)
-
 
   All <- MC_scores |>
     dplyr::full_join(Essay_scores,
@@ -67,6 +67,7 @@ score_document <- function(
       dplyr::select(student, docid, total) |>
       dplyr::mutate(section = sec)
     if (nrow(this_sections_report) > 0) {
+      if (any(is.na(this_sections_report$docid))) this_sections_report$docid <- this_document
       Reports[[sec]] <- this_sections_report
     }
   }
