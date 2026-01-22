@@ -40,7 +40,7 @@ mcq_engine <- function(options) {
 
   choices <- mc_choices(options$code) # collection of all answer items
 
-  tmp <- tags$span(emit_mcq_html(yamlopts, choices)) |> as.character()
+  tmp <- htmltools::tags$span(emit_mcq_html(yamlopts, choices)) |> as.character()
   paste(prompt, tmp)# |> HTML())
 }
 
