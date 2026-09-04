@@ -29,15 +29,12 @@ new_item_label <- function(ename) {
 new_exercise_file <-
   function(old_contents = "",
            ename = new_exercise_name(),
-           path = "./",
-           dir = "_exercises/") {
-  # Construct the full path from the source file to the
-  # directory that holds the exercises
-  whole_path <- file.path(path, dir)
+           path = "./") {
+
   # Construct a first try at a new name
-  new_file_name <- paste0(whole_path, new_exercise_name(), ".qmd")
+  new_file_name <- paste0(path, ename, ".qmd")
   # create the directory if it doesn't exist
-  suppressWarnings(dir.create(whole_path))
+  suppressWarnings(dir.create(path))
   # find an unused exercise file name
 
   count <- 0
@@ -47,34 +44,30 @@ new_exercise_file <-
   }
   if (count >= 100) stop("Can't find a random name for the new file. ")
 
-  new_file_name <- paste0(whole_path, ename, ".qmd")
+  new_file_name <- paste0(path, ename, ".qmd")
 
   Contents <- glue::glue(
-"---
+"<!--
 id: \"{ename}\"
 created: \"{date()}\"
-attribution: TBA
----
+attribution: DTK
+mode: undetermined
+status: sketch
+group: x_drafts
+-->
 
-```{{r include=FALSE, eval=!\"devoirs\" %in% (.packages())}}
-# For stand-alone compilation testing
-library(devoirs)
-library(mosaicCalc)
-```
+{{< include ../exercise-header.qmd >}}
+
 
 ::: {{#exr-{ename}}}
-{paste(old_contents, collapse='\n')}
+
 :::
  <!-- end of exr-{ename} -->"
 )
 
 
   writeLines(Contents, con = new_file_name)
-  if (!rstudioapi::isAvailable())
-    return()
-  if (!rstudioapi::hasFun("navigateToFile"))
-    return()
-  rstudioapi::navigateToFile(new_file_name)
+  system2("code", new_file_name)
 
   # hand back the new name to the caller
   return(ename)
